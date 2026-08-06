@@ -20,7 +20,7 @@ import { QUIZZES } from '../conteudo/quizzes'
 import { acertos as contarAcertos, respondeu, respondidas } from '../nucleo/progresso'
 import { ErroApi, type IdMissao } from '../nucleo/tipos'
 import { useAvisos } from './avisos'
-import { Erro } from './comuns'
+import { Erro, Nota } from './comuns'
 
 const LETRAS = ['A', 'B', 'C', 'D']
 
@@ -72,13 +72,12 @@ export default function Quiz({ missao }: { missao: IdMissao }) {
 
   if (pendentes.length === 0) {
     return (
-      <div className="cartao pilha">
-        <p>
-          <strong>Quiz concluído.</strong> Você acertou {contarAcertos(progresso, missao)} de{' '}
-          {PERGUNTAS_POR_MISSAO} perguntas.
-        </p>
-        <p className="discreto">Cada pergunta é respondida uma única vez — por isso ela não reabre.</p>
-      </div>
+      <Nota tipo="ok">
+        <b>
+          Quiz concluído — {contarAcertos(progresso, missao)} de {PERGUNTAS_POR_MISSAO} acertos.
+        </b>
+        Cada pergunta é respondida uma única vez, por isso ela não reabre.
+      </Nota>
     )
   }
 
@@ -109,7 +108,7 @@ export default function Quiz({ missao }: { missao: IdMissao }) {
         ))}
       </div>
 
-      <p className="discreto centro">
+      <p className="meta">
         Pergunta {numero} de {PERGUNTAS_POR_MISSAO}
       </p>
 
@@ -119,7 +118,7 @@ export default function Quiz({ missao }: { missao: IdMissao }) {
         {p.o.map((texto, i) => {
           const eCerta = veredito && i === veredito.resposta
           const eMinhaErrada = veredito && i === escolha && !veredito.certo
-          const classe = `quiz__opcao${eCerta ? ' quiz__opcao--certa' : eMinhaErrada ? ' quiz__opcao--errada' : ''}`
+          const classe = `opcao${eCerta ? ' opcao--certa' : eMinhaErrada ? ' opcao--errada' : ''}`
           return (
             <button
               key={i}
@@ -128,7 +127,7 @@ export default function Quiz({ missao }: { missao: IdMissao }) {
               disabled={enviando || Boolean(veredito)}
               onClick={() => responder(i)}
             >
-              <span className="quiz__opcao__letra" aria-hidden="true">
+              <span className="opcao__letra" aria-hidden="true">
                 {LETRAS[i]}
               </span>
               <span>
@@ -145,15 +144,19 @@ export default function Quiz({ missao }: { missao: IdMissao }) {
 
       {veredito && (
         <>
-          <div className="quiz__explicacao" role="status" aria-live="polite">
-            <p>
-              <strong>{veredito.certo ? '✓ Você acertou.' : '✗ A resposta certa é a ' + LETRAS[veredito.resposta] + '.'}</strong>{' '}
-              {veredito.explicacao}
-            </p>
+          <Nota tipo={veredito.certo ? 'ok' : 'erro'} vivo>
+            <b>
+              {veredito.certo
+                ? 'Você acertou.'
+                : `A resposta certa é a ${LETRAS[veredito.resposta]}.`}
+            </b>
+            {veredito.explicacao}
+          </Nota>
+          <div className="acoes">
+            <button type="button" className="botao botao--primario" onClick={proxima} autoFocus>
+              {passo + 1 >= pendentes.length ? 'Concluir o quiz' : 'Próxima pergunta'}
+            </button>
           </div>
-          <button type="button" className="botao botao--primario" onClick={proxima} autoFocus>
-            {passo + 1 >= pendentes.length ? 'Concluir o quiz' : 'Próxima pergunta'}
-          </button>
         </>
       )}
     </div>

@@ -1,13 +1,13 @@
-/* ==========================================================================
-   Perfil.tsx — apelido, avatar e a decisão sobre o ranking.
+﻿/* ==========================================================================
+   Perfil.tsx â€” apelido, avatar e a decisÃ£o sobre o ranking.
 
-   O cliente só altera campo cosmético. Pontos, área e progresso não estão
-   aqui e não estão em lugar nenhum que o navegador alcance: quem os grava é
-   a Edge Function, que roda com service_role. Isso não é só segurança — é o
+   O cliente sÃ³ altera campo cosmÃ©tico. Pontos, Ã¡rea e progresso nÃ£o estÃ£o
+   aqui e nÃ£o estÃ£o em lugar nenhum que o navegador alcance: quem os grava Ã©
+   a Edge Function, que roda com service_role. Isso nÃ£o Ã© sÃ³ seguranÃ§a â€” Ã© o
    que faz o resultado de quem jogou honestamente valer alguma coisa.
 
-   O opt-out do ranking vale nos dois lugares: quem sai do ranking também
-   desaparece da busca por apelido. Opt-out que vale só num lugar não é
+   O opt-out do ranking vale nos dois lugares: quem sai do ranking tambÃ©m
+   desaparece da busca por apelido. Opt-out que vale sÃ³ num lugar nÃ£o Ã©
    opt-out.
    ========================================================================== */
 
@@ -19,14 +19,14 @@ import { Erro, GradeMedalhas } from '../componentes/comuns'
 import { medalhaDe, MEDALHAS } from '../nucleo/progresso'
 import { ErroApi } from '../nucleo/tipos'
 
-const EMOJIS = ['😀', '🙂', '😎', '🤓', '🧑‍💻', '🧑‍🔧', '👷', '🦾', '🧠', '🌱', '⚓', '🚀']
+const EMOJIS = ['ðŸ˜€', 'ðŸ™‚', 'ðŸ˜Ž', 'ðŸ¤“', 'ðŸ§‘â€ðŸ’»', 'ðŸ§‘â€ðŸ”§', 'ðŸ‘·', 'ðŸ¦¾', 'ðŸ§ ', 'ðŸŒ±', 'âš“', 'ðŸš€']
 const CORES = ['#004AA1', '#00BBDC', '#1E8E5A', '#B8791A', '#7C5CE0', '#C23B22']
 
 export default function Perfil() {
   const { jogador, progresso, atualizarJogador, sair } = useEstado()
   const { avisar } = useAvisos()
   const [apelido, setApelido] = useState(jogador?.apelido ?? '')
-  const [emoji, setEmoji] = useState(jogador?.emoji ?? '😀')
+  const [emoji, setEmoji] = useState(jogador?.emoji ?? 'ðŸ˜€')
   const [cor, setCor] = useState(jogador?.cor ?? CORES[0])
   const [salvando, setSalvando] = useState(false)
   const [erro, setErro] = useState<string | null>(null)
@@ -47,7 +47,7 @@ export default function Perfil() {
       atualizarJogador(r.jogador)
       avisar('Perfil salvo.', 'ok')
     } catch (e) {
-      setErro(e instanceof ErroApi ? e.message : 'Não conseguimos salvar. Tente de novo.')
+      setErro(e instanceof ErroApi ? e.message : 'NÃ£o conseguimos salvar. Tente de novo.')
     } finally {
       setSalvando(false)
     }
@@ -58,21 +58,21 @@ export default function Perfil() {
     try {
       const r = await salvarPerfil({ opt_in: !jogador!.opt_in })
       atualizarJogador(r.jogador)
-      avisar(r.jogador.opt_in ? 'Você entrou no ranking.' : 'Você saiu do ranking.', 'ok')
+      avisar(r.jogador.opt_in ? 'VocÃª entrou no ranking.' : 'VocÃª saiu do ranking.', 'ok')
     } catch (e) {
-      setErro(e instanceof ErroApi ? e.message : 'Não conseguimos salvar. Tente de novo.')
+      setErro(e instanceof ErroApi ? e.message : 'NÃ£o conseguimos salvar. Tente de novo.')
     } finally {
       setSalvando(false)
     }
   }
 
   return (
-    <div className="pilha--g pilha">
+    <div className="pilha-g">
       <h1>Perfil</h1>
 
-      <section className="cartao pilha" aria-labelledby="t-identidade">
+      <section className="painel pilha" aria-labelledby="t-identidade">
         <h2 id="t-identidade" style={{ fontSize: '1.125rem' }}>
-          Como você aparece
+          Como vocÃª aparece
         </h2>
 
         <div className="linha">
@@ -92,7 +92,7 @@ export default function Perfil() {
           </span>
           <div>
             <p style={{ fontWeight: 700 }}>{apelido || jogador.nome}</p>
-            <p className="discreto">{jogador.area ?? 'Área não informada'}</p>
+            <p className="meta">{jogador.area ?? 'Ãrea nÃ£o informada'}</p>
           </div>
         </div>
 
@@ -106,13 +106,13 @@ export default function Perfil() {
             aria-describedby="ajuda-apelido"
           />
           <span className="campo__ajuda" id="ajuda-apelido">
-            É este nome que aparece para as outras pessoas. Seu nome completo e seu e-mail nunca
+            Ã‰ este nome que aparece para as outras pessoas. Seu nome completo e seu e-mail nunca
             aparecem no ranking.
           </span>
         </div>
 
         <fieldset style={{ border: 0, padding: 0 }}>
-          <legend style={{ fontWeight: 600, fontSize: '.9375rem', marginBottom: '.375rem' }}>Ícone</legend>
+          <legend style={{ fontWeight: 600, fontSize: '.9375rem', marginBottom: '.375rem' }}>Ãcone</legend>
           <div className="linha" style={{ gap: '.375rem' }}>
             {EMOJIS.map((e) => (
               <button
@@ -120,7 +120,7 @@ export default function Perfil() {
                 type="button"
                 className="botao botao--secundario"
                 aria-pressed={emoji === e}
-                aria-label={`Ícone ${e}`}
+                aria-label={`Ãcone ${e}`}
                 style={{
                   minWidth: '3rem',
                   padding: '.4rem',
@@ -162,44 +162,44 @@ export default function Perfil() {
         {erro && <Erro>{erro}</Erro>}
 
         <button type="button" className="botao botao--primario" onClick={() => void salvar()} disabled={salvando}>
-          {salvando ? 'Salvando…' : 'Salvar'}
+          {salvando ? 'Salvandoâ€¦' : 'Salvar'}
         </button>
       </section>
 
-      <section className="cartao pilha" aria-labelledby="t-ranking">
+      <section className="painel pilha" aria-labelledby="t-ranking">
         <h2 id="t-ranking" style={{ fontSize: '1.125rem' }}>
-          Ranking público
+          Ranking pÃºblico
         </h2>
         <p>
           {jogador.opt_in
-            ? 'Você aparece no ranking com o apelido acima. Pode sair quando quiser — e sair vale também para a busca.'
-            : 'Você não aparece no ranking. Seus pontos continuam contando; apenas ninguém vê seu nome na lista.'}
+            ? 'VocÃª aparece no ranking com o apelido acima. Pode sair quando quiser â€” e sair vale tambÃ©m para a busca.'
+            : 'VocÃª nÃ£o aparece no ranking. Seus pontos continuam contando; apenas ninguÃ©m vÃª seu nome na lista.'}
         </p>
         <button type="button" className="botao botao--secundario" onClick={() => void alternarRanking()} disabled={salvando}>
           {jogador.opt_in ? 'Sair do ranking' : 'Entrar no ranking'}
         </button>
       </section>
 
-      <section className="cartao pilha" aria-labelledby="t-medalhas">
+      <section className="painel pilha" aria-labelledby="t-medalhas">
         <h2 id="t-medalhas" style={{ fontSize: '1.125rem' }}>
           Medalhas
         </h2>
         <GradeMedalhas atual={medalha} />
-        <ul className="pilha discreto" style={{ paddingLeft: '1.125rem', gap: '.25rem' }}>
+        <ul className="pilha-2 meta" style={{ paddingLeft: '1.125rem', gap: '.25rem' }}>
           {Object.entries(MEDALHAS).map(([id, m]) => (
             <li key={id}>
-              <strong>{m.nome}</strong> — {m.comoGanhar}
+              <strong>{m.nome}</strong> â€” {m.comoGanhar}
             </li>
           ))}
         </ul>
       </section>
 
-      <section className="cartao pilha" aria-labelledby="t-conta">
+      <section className="painel pilha" aria-labelledby="t-conta">
         <h2 id="t-conta" style={{ fontSize: '1.125rem' }}>
           Sua conta
         </h2>
-        <p className="discreto">
-          Você entrou como <strong>{jogador.email}</strong>.
+        <p className="meta">
+          VocÃª entrou como <strong>{jogador.email}</strong>.
         </p>
         <button type="button" className="botao botao--fantasma" onClick={sair}>
           Sair deste dispositivo
@@ -208,3 +208,4 @@ export default function Perfil() {
     </div>
   )
 }
+

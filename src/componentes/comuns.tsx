@@ -2,7 +2,7 @@
    comuns.tsx — peças pequenas usadas em mais de uma tela.
 
    Regra que atravessa todas: estado nunca é comunicado só por cor. Selo tem
-   texto, barra tem `aria-valuenow`, medalha bloqueada diz "Bloqueada". É a
+   texto, barra tem `aria-valuenow`, medalha travada diz como se ganha. É a
    diferença entre passar no WCAG 1.4.1 e passar de verdade.
    ========================================================================== */
 
@@ -27,22 +27,10 @@ export function Barra({ pct, rotulo }: { pct: number; rotulo: string }) {
 }
 
 export function Selo({ estado, children }: { estado: 'ok' | 'pendente' | 'neutro'; children: ReactNode }) {
-  const classe = estado === 'ok' ? 'selo selo--ok' : estado === 'pendente' ? 'selo selo--pendente' : 'selo'
   return (
-    <span className={classe}>
-      <span aria-hidden="true">{estado === 'ok' ? '✓' : estado === 'pendente' ? '○' : '•'}</span>
+    <span className={`selo selo--${estado}`}>
+      <i aria-hidden="true">{estado === 'ok' ? '✓' : estado === 'pendente' ? '○' : '·'}</i>
       {children}
-    </span>
-  )
-}
-
-export function ChipMedalha({ medalha, conquistada }: { medalha: Medalha; conquistada: boolean }) {
-  const m = MEDALHAS[medalha]
-  return (
-    <span className={`medalha medalha--${conquistada ? medalha : 'bloqueada'}`}>
-      <span aria-hidden="true">{m.ico}</span>
-      {m.nome}
-      {!conquistada && <span className="so-leitor"> — bloqueada. {m.comoGanhar}</span>}
     </span>
   )
 }
@@ -50,21 +38,61 @@ export function ChipMedalha({ medalha, conquistada }: { medalha: Medalha; conqui
 export function GradeMedalhas({ atual }: { atual: Medalha | null }) {
   const alcance = atual ? ORDEM_MEDALHA.indexOf(atual) : -1
   return (
-    <ul className="linha" style={{ listStyle: 'none', padding: 0, margin: 0 }}>
-      {ORDEM_MEDALHA.map((m, i) => (
-        <li key={m} title={MEDALHAS[m].comoGanhar}>
-          <ChipMedalha medalha={m} conquistada={i <= alcance} />
-        </li>
-      ))}
+    <ul className="medalhas">
+      {ORDEM_MEDALHA.map((m, i) => {
+        const conquistada = i <= alcance
+        return (
+          <li key={m}>
+            <span className={`medalha medalha--${conquistada ? m : 'travada'}`}>
+              <i aria-hidden="true">{MEDALHAS[m].ico}</i>
+              {MEDALHAS[m].nome}
+              {!conquistada && <span className="so-leitor"> — ainda não conquistada. {MEDALHAS[m].comoGanhar}</span>}
+            </span>
+          </li>
+        )
+      })}
     </ul>
   )
 }
 
-export function Carregando({ texto = 'Carregando…' }: { texto?: string }) {
+/* Esqueleto no lugar de spinner: a tela já mostra onde a informação vai
+   cair, em vez de um círculo girando no meio do nada. */
+export function Carregando({ texto = 'Carregando…', linhas = 3 }: { texto?: string; linhas?: number }) {
   return (
-    <p className="centro discreto" role="status" aria-live="polite" style={{ padding: '3rem 0' }}>
-      {texto}
-    </p>
+    <div className="esqueleto" role="status" aria-live="polite">
+      <span className="so-leitor">{texto}</span>
+      {Array.from({ length: linhas }, (_, i) => (
+        <span key={i} aria-hidden="true" />
+      ))}
+    </div>
+  )
+}
+
+/** Bloco de destaque: explicação, aviso, resultado. Ícone + fundo tonalizado,
+    nunca faixa colorida na borda. */
+export function Nota({
+  tipo = 'info',
+  ico,
+  children,
+  vivo,
+}: {
+  tipo?: 'info' | 'ok' | 'erro' | 'atencao'
+  ico?: string
+  children: ReactNode
+  vivo?: boolean
+}) {
+  const padrao = tipo === 'ok' ? '✓' : tipo === 'erro' ? '✕' : tipo === 'atencao' ? '!' : 'i'
+  return (
+    <div
+      className={`nota${tipo === 'info' ? '' : ` nota--${tipo}`}`}
+      role={vivo ? 'status' : undefined}
+      aria-live={vivo ? 'polite' : undefined}
+    >
+      <span className="nota__ico" aria-hidden="true">
+        {ico ?? padrao}
+      </span>
+      <div>{children}</div>
+    </div>
   )
 }
 
@@ -72,9 +100,23 @@ export function Carregando({ texto = 'Carregando…' }: { texto?: string }) {
     e o texto sempre diz o que fazer, nunca só o que deu errado. */
 export function Erro({ children }: { children: ReactNode }) {
   return (
-    <p className="campo__erro" role="alert">
-      <span aria-hidden="true">⚠</span>
-      <span>{children}</span>
-    </p>
+    <div className="nota nota--erro" role="alert">
+      <span className="nota__ico" aria-hidden="true">
+        !
+      </span>
+      <div>{children}</div>
+    </div>
+  )
+}
+
+/** Estado vazio que ensina a interface em vez de dizer "nada aqui". */
+export function Vazio({ ico, children }: { ico: string; children: ReactNode }) {
+  return (
+    <div className="vazio">
+      <span className="vazio__ico" aria-hidden="true">
+        {ico}
+      </span>
+      <div className="prosa">{children}</div>
+    </div>
   )
 }

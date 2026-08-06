@@ -12,6 +12,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { CARTAS_MITO } from '../conteudo/jogos'
 import { agora, embaralhar, type PropsJogo } from './contrato'
+import { Nota } from '../componentes/comuns'
 
 const SEGUNDOS_POR_CARTA = 15
 
@@ -70,14 +71,14 @@ export default function MitoOuFato({ aoConcluir, jaFeito }: PropsJogo) {
   if (fase === 'escolha') {
     return (
       <div className="jogo">
-        <div className="jogo__instrucao">
-          <strong>Como jogar:</strong> oito afirmações sobre deficiência no trabalho. Para cada uma, decida
-          se é <strong>mito</strong> ou <strong>fato</strong>. Depois de responder, você lê o porquê.
-        </div>
+        <p className="prosa">
+          Oito afirmações sobre deficiência no trabalho. Para cada uma, decida se é{' '}
+          <strong>mito</strong> ou <strong>fato</strong> — e depois leia o porquê.
+        </p>
 
-        <fieldset className="cartao pilha" style={{ border: '1px solid var(--linha)' }}>
+        <fieldset className="painel pilha" style={{ minWidth: 0 }}>
           <legend style={{ fontWeight: 700, padding: '0 .5rem' }}>Como você prefere jogar?</legend>
-          <p className="discreto" style={{ margin: 0 }}>
+          <p className="meta">
             As duas formas valem os mesmos pontos. Escolha a que for melhor para você.
           </p>
           <button
@@ -122,7 +123,7 @@ export default function MitoOuFato({ aoConcluir, jaFeito }: PropsJogo) {
               ? 'Você identificou todos os mitos.'
               : 'Os mitos que passaram são justamente os que mais circulam por aí.'}
           </p>
-          {jaFeito && <p className="discreto">Você já tinha concluído este jogo — os pontos valem uma vez só.</p>}
+          {jaFeito && <p className="meta">Você já tinha concluído este jogo — os pontos valem uma vez só.</p>}
         </div>
       </div>
     )
@@ -131,11 +132,13 @@ export default function MitoOuFato({ aoConcluir, jaFeito }: PropsJogo) {
   /* ------------------------------ JOGANDO ------------------------------ */
   return (
     <div className="jogo">
-      <div className="jogo__topo">
+      <div className="jogo__barra">
         <span>
-          Carta {i + 1} de {cartas.length}
+          Carta <b>{i + 1}</b>/{cartas.length}
         </span>
-        <span className="jogo__placar">Acertos: {acertos}</span>
+        <span>
+          Acertos <b>{acertos}</b>
+        </span>
       </div>
 
       <div className="mito">
@@ -148,9 +151,7 @@ export default function MitoOuFato({ aoConcluir, jaFeito }: PropsJogo) {
             >
               <div className="progresso__barra" style={{ width: `${(restam / SEGUNDOS_POR_CARTA) * 100}%` }} />
             </div>
-            <p className="discreto centro" style={{ marginTop: '.25rem' }}>
-              {restam}s
-            </p>
+            <span>{restam}s</span>
           </div>
         )}
 
@@ -167,13 +168,16 @@ export default function MitoOuFato({ aoConcluir, jaFeito }: PropsJogo) {
           </div>
         ) : (
           <>
-            <div className="mito__resposta" role="status" aria-live="polite">
-              <p>
-                <strong>{resposta.certo ? '✓ Você acertou.' : '✗ Não é isso.'}</strong>{' '}
-                {resposta.texto}
-              </p>
-            </div>
-            <button type="button" className="botao botao--primario" onClick={proxima} autoFocus>
+            <Nota tipo={resposta.certo ? 'ok' : 'erro'} vivo>
+              <b>{resposta.certo ? 'Você acertou.' : 'Não é isso.'}</b>
+              {resposta.texto}
+            </Nota>
+            <button
+              type="button"
+              className="botao botao--primario botao--largo"
+              onClick={proxima}
+              autoFocus
+            >
               {i + 1 >= cartas.length ? 'Ver resultado' : 'Próxima carta'}
             </button>
           </>

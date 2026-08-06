@@ -85,21 +85,25 @@ export default function Memoria({ aoConcluir, jaFeito }: PropsJogo) {
 
   return (
     <div className="jogo">
-      <div className="jogo__instrucao">
-        <strong>Como jogar:</strong> vire duas cartas por vez e encontre os {PARES_MEMORIA.length} pares.
-        Cada par liga um conceito à sua definição.
-        <br />
-        <span className="discreto">
-          No teclado: Tab para navegar entre as cartas, Enter ou Espaço para virar.
+      <div className="jogo__barra">
+        <span>
+          Pares <b>{achados.length}</b>/{PARES_MEMORIA.length}
+        </span>
+        <span>
+          Tentativas <b>{tentativas}</b>
         </span>
       </div>
 
-      <div className="jogo__topo">
-        <span>
-          Pares: {achados.length}/{PARES_MEMORIA.length}
-        </span>
-        <span className="jogo__placar">Tentativas: {tentativas}</span>
-      </div>
+      {/* A instrução vem fechada: quem já entendeu não gasta meia tela lendo
+          de novo a cada missão, e quem precisa abre. */}
+      <details className="jogo__como">
+        <summary>Como jogar</summary>
+        Vire duas cartas por vez e encontre os {PARES_MEMORIA.length} pares. Cada par liga um conceito
+        à sua definição.
+        <ul>
+          <li>No teclado: Tab entre as cartas, Enter ou Espaço para virar.</li>
+        </ul>
+      </details>
 
       <div className="memoria">
         {cartas.map((c, i) => {
@@ -116,14 +120,14 @@ export default function Memoria({ aoConcluir, jaFeito }: PropsJogo) {
             <button
               key={`${c.chave}-${c.tipo}`}
               type="button"
-              className="memoria__carta"
+              className="carta"
               data-face={face}
               aria-label={rotulo}
               aria-disabled={estaPar}
               onClick={() => virar(i)}
             >
-              <span className="memoria__texto">
-                <span className="memoria__tipo" aria-hidden="true">
+              <span className="carta__texto">
+                <span className="carta__tipo" aria-hidden="true">
                   {c.tipo === 'conceito' ? 'conceito' : 'definição'}
                 </span>
                 {c.texto}
@@ -143,7 +147,7 @@ export default function Memoria({ aoConcluir, jaFeito }: PropsJogo) {
           <p>
             <strong>Todos os pares encontrados</strong> em {tentativas} tentativas.
           </p>
-          {jaFeito && <p className="discreto">Você já tinha concluído este jogo — os pontos valem uma vez só.</p>}
+          {jaFeito && <p className="meta">Você já tinha concluído este jogo — os pontos valem uma vez só.</p>}
         </div>
       )}
     </div>

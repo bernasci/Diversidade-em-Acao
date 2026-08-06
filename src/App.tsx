@@ -4,16 +4,20 @@
    Duas coisas que uma SPA quebra por padrão e que estão resolvidas aqui:
 
    1. FOCO NA TROCA DE TELA. Navegar sem recarregar deixa o foco onde estava —
-      quem usa teclado ou leitor de tela troca de página e continua "dentro" do
-      menu, sem saber que a tela mudou. `FocoNaTela` move o foco para o
-      conteúdo a cada mudança de rota.
+      quem usa teclado ou leitor de tela troca de página e continua "dentro"
+      do menu, sem saber que a tela mudou.
    2. TÍTULO DA PÁGINA. Também não muda sozinho, e é o que o leitor de tela
       anuncia primeiro.
+
+   A navegação é a mesma lista nos dois tamanhos: barra inferior no celular,
+   na zona do polegar, e barra no topo a partir de 48rem. Muda a posição, não
+   a informação — é isso que "responsivo estrutural" quer dizer, e é o que
+   evita ter duas árvores de navegação para manter.
    ========================================================================== */
 
 import { useEffect, useRef } from 'react'
 import { NavLink, Navigate, Route, Routes, useLocation } from 'react-router-dom'
-import { BarraAcessibilidade } from './nucleo/acessibilidade'
+import { BotaoAcessibilidade } from './nucleo/acessibilidade'
 import { useEstado } from './nucleo/estado'
 import { Carregando } from './componentes/comuns'
 import { PTS_MAX } from './conteudo/missoes'
@@ -25,14 +29,14 @@ import Perfil from './telas/Perfil'
 import Certificado from './telas/Certificado'
 
 const ABAS = [
-  { para: '/', ico: '🏠', rotulo: 'Início' },
-  { para: '/ranking', ico: '🏆', rotulo: 'Ranking' },
-  { para: '/certificado', ico: '📜', rotulo: 'Certificado' },
-  { para: '/perfil', ico: '👤', rotulo: 'Perfil' },
+  { para: '/', ico: '◆', rotulo: 'Missões' },
+  { para: '/ranking', ico: '▲', rotulo: 'Ranking' },
+  { para: '/certificado', ico: '★', rotulo: 'Certificado' },
+  { para: '/perfil', ico: '●', rotulo: 'Perfil' },
 ]
 
 const TITULOS: Record<string, string> = {
-  '/': 'Início',
+  '/': 'Missões',
   '/ranking': 'Ranking',
   '/certificado': 'Certificado',
   '/perfil': 'Perfil',
@@ -46,8 +50,8 @@ function FocoNaTela() {
     const base = TITULOS[pathname] ?? (pathname.startsWith('/missao/') ? 'Missão' : 'Diversidade em Ação')
     document.title = `${base} · Diversidade em Ação`
 
-    // Na primeira renderização o foco já está onde deveria (topo da página);
-    // mover de novo faria o leitor de tela ler duas vezes.
+    // Na primeira renderização o foco já está onde deveria; mover de novo
+    // faria o leitor de tela ler duas vezes.
     if (primeira.current) {
       primeira.current = false
       return
@@ -64,16 +68,17 @@ function FocoNaTela() {
 
 export default function App() {
   const { carregando, jogador } = useEstado()
+  const { pathname } = useLocation()
+  const largo = pathname === '/ranking'
 
   return (
     <div className="app">
       <FocoNaTela />
-      <BarraAcessibilidade />
 
       <header className="cabecalho">
-        <span className="cabecalho__marca">
-          <svg width="26" height="26" viewBox="0 0 64 64" aria-hidden="true">
-            <circle cx="32" cy="14" r="6" fill="#00BBDC" />
+        <span className="marca">
+          <svg width="24" height="24" viewBox="0 0 64 64" aria-hidden="true">
+            <circle cx="32" cy="13" r="6" fill="#00BBDC" />
             <path
               d="M20 26h24M32 26v14M32 40h11M32 40l-9 11"
               stroke="#00BBDC"
@@ -82,26 +87,26 @@ export default function App() {
               fill="none"
             />
           </svg>
-          Diversidade em Ação
+          <span>Diversidade em Ação</span>
         </span>
 
-        {jogador && (
-          <span className="cabecalho__pontos">
-            <span aria-hidden="true">⭐</span>
-            <span>
-              {jogador.pts}
-              <span className="so-leitor"> de {PTS_MAX} pontos</span>
+        <div className="cabecalho__acoes">
+          {jogador && (
+            <span className="placar">
+              <b>{jogador.pts}</b>
               <span aria-hidden="true">/{PTS_MAX}</span>
+              <span className="so-leitor">de {PTS_MAX} pontos</span>
             </span>
-          </span>
-        )}
+          )}
+          <BotaoAcessibilidade />
+        </div>
       </header>
 
       {jogador && (
-        <nav className="navegacao" aria-label="Seções do jogo">
+        <nav className="nav" aria-label="Seções do jogo">
           {ABAS.map((a) => (
-            <NavLink key={a.para} to={a.para} end={a.para === '/'} className="navegacao__item">
-              <span aria-hidden="true">{a.ico}</span>
+            <NavLink key={a.para} to={a.para} end={a.para === '/'} className="nav__item">
+              <i aria-hidden="true">{a.ico}</i>
               {a.rotulo}
             </NavLink>
           ))}
@@ -110,7 +115,7 @@ export default function App() {
 
       {/* tabIndex={-1} existe só para receber o foco programático da troca de
           rota; não entra na ordem de tabulação. */}
-      <main className="conteudo" id="conteudo" tabIndex={-1}>
+      <main className={`conteudo${largo ? ' conteudo--largo' : ''}`} id="conteudo" tabIndex={-1}>
         {carregando ? (
           <Carregando texto="Carregando sua jornada…" />
         ) : !jogador ? (

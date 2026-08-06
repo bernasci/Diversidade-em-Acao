@@ -9,6 +9,10 @@
    Os jogos entram por `lazy()` porque são a parte pesada do bundle e quase
    nunca aparecem juntos: quem abre a Missão 1 no 4G não deve baixar o
    quebra-cabeça da Missão 3.
+
+   As três etapas são botões numa fila rolável, não abas empilhadas: no
+   celular, três botões de largura total gastariam metade da tela antes de a
+   pessoa ver qualquer conteúdo.
    ========================================================================== */
 
 import { Suspense, lazy, useCallback, useState, type ComponentType, type LazyExoticComponent } from 'react'
@@ -16,7 +20,7 @@ import { Link, Navigate, useParams } from 'react-router-dom'
 import { concluirJogo } from '../nucleo/api'
 import { useEstado } from '../nucleo/estado'
 import { useAvisos } from '../componentes/avisos'
-import { Carregando, Selo } from '../componentes/comuns'
+import { Carregando, Nota, Selo } from '../componentes/comuns'
 import Quiz from '../componentes/Quiz'
 import { MISSAO_POR_ID, MISSOES, PERGUNTAS_POR_MISSAO, PTS_JOGO, type TipoJogo } from '../conteudo/missoes'
 import { fezJogo, missaoCompleta, quizCompleto } from '../nucleo/progresso'
@@ -51,7 +55,7 @@ export default function TelaMissao() {
         const c = await concluirJogo(missao.id, r)
         registrar(missao.id, 'jogo', c.pontos, c.total)
         if (!c.ja) {
-          avisar(`+${c.pontos} pontos pelo ${missao.jogoNome.toLowerCase()}`, 'ok')
+          avisar(`+${c.pontos} pontos`, 'ok')
           comemorar(30)
         }
       } catch (e) {
@@ -70,37 +74,36 @@ export default function TelaMissao() {
   const quizFeito = quizCompleto(progresso, missao.id)
   const completa = missaoCompleta(progresso, missao.id)
   const Jogo = JOGOS[missao.jogo]
-  const proxima = MISSOES[MISSOES.findIndex((m) => m.id === missao.id) + 1]
+  const indice = MISSOES.findIndex((m) => m.id === missao.id)
+  const proxima = MISSOES[indice + 1]
+
+  const etapas: [Etapa, string][] = [
+    ['aprender', 'Aprender'],
+    ['jogo', missao.jogoNome],
+    ['quiz', 'Quiz'],
+  ]
 
   return (
-    <div className="pilha--g pilha">
-      <p>
-        <Link to="/">← Voltar para as missões</Link>
-      </p>
-
-      <header className="pilha">
-        <span className="missao-cartao__ordem">
-          <span aria-hidden="true">{missao.ico} </span>
-          {missao.ordem} · {missao.tema}
-        </span>
+    <div className="pilha-g">
+      <div className="pilha-2">
+        <p className="meta">
+          <Link to="/">← Todas as missões</Link>
+        </p>
+        <p className="meta">
+          Missão {indice + 1} de {MISSOES.length} · {missao.tema}
+        </p>
         <h1>{missao.nome}</h1>
-        <p style={{ color: 'var(--ink-2)' }}>{missao.tagline}</p>
+        <p className="prosa">{missao.tagline}</p>
         <div className="linha">
           <Selo estado={jogoFeito ? 'ok' : 'pendente'}>{missao.jogoNome}</Selo>
-          <Selo estado={quizFeito ? 'ok' : 'pendente'}>Quiz de {PERGUNTAS_POR_MISSAO} perguntas</Selo>
+          <Selo estado={quizFeito ? 'ok' : 'pendente'}>{PERGUNTAS_POR_MISSAO} perguntas</Selo>
         </div>
-      </header>
+      </div>
 
-      {/* Três etapas, navegáveis nas duas direções: quem quer reler o conteúdo
-          no meio do quiz não deve perder o que já respondeu para isso. */}
-      <nav aria-label="Etapas da missão" className="linha">
-        {(
-          [
-            ['aprender', '1. Aprender'],
-            ['jogo', `2. ${missao.jogoNome}`],
-            ['quiz', '3. Quiz'],
-          ] as [Etapa, string][]
-        ).map(([e, rotulo]) => (
+      {/* Navegável nas duas direções: quem quer reler o conteúdo no meio do
+          quiz não deve perder o que já respondeu para isso. */}
+      <nav aria-label="Etapas da missão" className="acoes">
+        {etapas.map(([e, rotulo]) => (
           <button
             key={e}
             type="button"
@@ -114,36 +117,39 @@ export default function TelaMissao() {
       </nav>
 
       {etapa === 'aprender' && (
-        <section className="cartao pilha" aria-labelledby="t-aprender">
+        <section className="pilha" aria-labelledby="t-aprender">
           <h2 id="t-aprender">O que você precisa saber</h2>
-          <ul className="pilha" style={{ paddingLeft: '1.25rem', gap: '.75rem' }}>
+          <ul className="pilha sem-lista">
             {missao.aprender.map((t, i) => (
-              <li key={i}>{t}</li>
+              <li key={i} className="painel prosa">
+                {t}
+              </li>
             ))}
           </ul>
-          <button type="button" className="botao botao--primario" onClick={() => setEtapa('jogo')}>
-            Ir para o {missao.jogoNome.toLowerCase()} →
-          </button>
+          <div className="acoes">
+            <button type="button" className="botao botao--primario" onClick={() => setEtapa('jogo')}>
+              Ir para o {missao.jogoNome.toLowerCase()} →
+            </button>
+          </div>
         </section>
       )}
 
       {etapa === 'jogo' && (
         <section aria-labelledby="t-jogo" className="pilha">
-          <h2 id="t-jogo">
-            {missao.jogoNome}{' '}
-            <span className="discreto" style={{ fontWeight: 400 }}>
-              {jogoFeito ? '· já concluído' : `· vale ${PTS_JOGO} pontos`}
-            </span>
-          </h2>
-          <p className="discreto">{missao.jogoComo}</p>
+          <h2 id="t-jogo">{missao.jogoNome}</h2>
+          <p className="meta">
+            {missao.jogoComo} {jogoFeito ? '· já concluído' : `· vale ${PTS_JOGO} pontos`}
+          </p>
 
-          <Suspense fallback={<Carregando texto="Preparando o jogo…" />}>
+          <Suspense fallback={<Carregando texto="Preparando o jogo…" linhas={4} />}>
             <Jogo aoConcluir={aoConcluirJogo} jaFeito={jogoFeito} />
           </Suspense>
 
-          <button type="button" className="botao botao--secundario" onClick={() => setEtapa('quiz')}>
-            Ir para o quiz →
-          </button>
+          <div className="acoes">
+            <button type="button" className="botao botao--secundario" onClick={() => setEtapa('quiz')}>
+              Ir para o quiz →
+            </button>
+          </div>
         </section>
       )}
 
@@ -155,20 +161,24 @@ export default function TelaMissao() {
       )}
 
       {completa && (
-        <section className="cartao pilha centro" aria-live="polite">
-          <p>
-            <strong>Missão concluída.</strong>
-          </p>
-          {proxima ? (
-            <Link className="botao botao--primario" to={`/missao/${proxima.id}`} onClick={() => setEtapa('aprender')}>
-              Começar a {proxima.ordem}: {proxima.nome} →
-            </Link>
-          ) : (
-            <Link className="botao botao--primario" to="/certificado">
-              Ver meu certificado →
-            </Link>
-          )}
-        </section>
+        <Nota tipo="ok" vivo>
+          <b>Missão concluída.</b>
+          <div className="acoes" style={{ marginTop: '.75rem' }}>
+            {proxima ? (
+              <Link
+                className="botao botao--primario"
+                to={`/missao/${proxima.id}`}
+                onClick={() => setEtapa('aprender')}
+              >
+                Próxima: {proxima.nome} →
+              </Link>
+            ) : (
+              <Link className="botao botao--primario" to="/certificado">
+                Ver meu certificado →
+              </Link>
+            )}
+          </div>
+        </Nota>
       )}
     </div>
   )

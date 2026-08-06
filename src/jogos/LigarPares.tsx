@@ -11,6 +11,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { ALVOS_LIGAR, FICHAS_LIGAR } from '../conteudo/jogos'
 import { agora, embaralhar, type PropsJogo } from './contrato'
+import { Nota } from '../componentes/comuns'
 
 export default function LigarPares({ aoConcluir, jaFeito }: PropsJogo) {
   const fichas = useMemo(() => embaralhar(FICHAS_LIGAR), [])
@@ -59,33 +60,35 @@ export default function LigarPares({ aoConcluir, jaFeito }: PropsJogo) {
 
   return (
     <div className="jogo">
-      <div className="jogo__instrucao">
-        <strong>Como jogar:</strong> escolha uma situação e depois a coluna do tipo de deficiência a que
-        ela se refere.
-        <ul>
-          <li>No teclado ou no toque: ative a situação, depois ative a coluna.</li>
-          <li>No mouse: também dá para arrastar, se preferir.</li>
-        </ul>
+      <div className="jogo__barra">
+        <span>
+          Classificadas <b>{FICHAS_LIGAR.length - pendentes.length}</b>/{FICHAS_LIGAR.length}
+        </span>
+        <span>
+          Erros <b>{erros}</b>
+        </span>
       </div>
 
-      <div className="jogo__topo">
-        <span>
-          Situações classificadas: {FICHAS_LIGAR.length - pendentes.length}/{FICHAS_LIGAR.length}
-        </span>
-        <span className="jogo__placar">Tentativas erradas: {erros}</span>
-      </div>
+      <details className="jogo__como">
+        <summary>Como jogar</summary>
+        Escolha uma situação e depois o tipo de deficiência a que ela se refere.
+        <ul>
+          <li>No toque ou no teclado: ative a situação, depois ative o destino.</li>
+          <li>No mouse também dá para arrastar, se preferir.</li>
+        </ul>
+      </details>
 
       <div className="ligar">
         <div>
-          <h3 style={{ fontSize: '.9375rem', marginBottom: '.5rem' }}>
-            Situações {selecionada && <span className="discreto">— agora escolha uma coluna</span>}
-          </h3>
-          <div className="ligar__fichas">
+          <p className="ligar__titulo">
+            {selecionada ? 'Agora escolha o destino abaixo' : 'Situações'}
+          </p>
+          <div>
             {pendentes.map((f) => (
               <button
                 key={f.id}
                 type="button"
-                className="ligar__ficha"
+                className="ficha"
                 aria-pressed={selecionada === f.id}
                 data-arrastando={arrastando === f.id ? 'sim' : undefined}
                 draggable
@@ -99,21 +102,21 @@ export default function LigarPares({ aoConcluir, jaFeito }: PropsJogo) {
                 {f.texto}
               </button>
             ))}
-            {pendentes.length === 0 && <p className="discreto">Nenhuma situação restante.</p>}
+            {pendentes.length === 0 && <p className="meta">Nenhuma situação restante.</p>}
           </div>
         </div>
 
         <div>
-          <h3 style={{ fontSize: '.9375rem', marginBottom: '.5rem' }}>Tipos de deficiência</h3>
-          <div className="ligar__alvos">
+          <p className="ligar__titulo">Tipos de deficiência</p>
+          <div className="alvos">
             {ALVOS_LIGAR.map((a) => {
               const dentro = FICHAS_LIGAR.filter((f) => colocadas[f.id] === a.id)
               return (
                 <button
                   key={a.id}
                   type="button"
-                  className="ligar__alvo"
-                  data-alvo={selecionada || arrastando ? 'ativo' : undefined}
+                  className="alvo"
+                  data-ativo={selecionada || arrastando ? 'sim' : undefined}
                   onDragOver={(e) => e.preventDefault()}
                   onDrop={(e) => {
                     e.preventDefault()
@@ -126,10 +129,10 @@ export default function LigarPares({ aoConcluir, jaFeito }: PropsJogo) {
                       : `${a.titulo}. ${dentro.length} situações classificadas aqui.`
                   }
                 >
-                  <span className="ligar__alvo__titulo">{a.titulo}</span>
-                  <span className="discreto">{a.descricao}</span>
+                  <span className="alvo__nome">{a.titulo}</span>
+                  <span className="alvo__desc">{a.descricao}</span>
                   {dentro.map((f) => (
-                    <span key={f.id} className="ligar__solto">
+                    <span key={f.id} className="alvo__item">
                       <span aria-hidden="true">✓</span> {f.texto}
                     </span>
                   ))}
@@ -141,13 +144,9 @@ export default function LigarPares({ aoConcluir, jaFeito }: PropsJogo) {
       </div>
 
       {aviso && (
-        <p
-          className={`quiz__explicacao${aviso.certo ? '' : ' campo__erro'}`}
-          role="status"
-          aria-live="polite"
-        >
+        <Nota tipo={aviso.certo ? 'ok' : 'atencao'} vivo>
           {aviso.texto}
-        </p>
+        </Nota>
       )}
 
       {completo && (
@@ -159,7 +158,7 @@ export default function LigarPares({ aoConcluir, jaFeito }: PropsJogo) {
             <strong>Todas classificadas.</strong>{' '}
             {erros === 0 ? 'Sem nenhum erro no caminho.' : `Com ${erros} tentativa(s) errada(s).`}
           </p>
-          {jaFeito && <p className="discreto">Você já tinha concluído este jogo — os pontos valem uma vez só.</p>}
+          {jaFeito && <p className="meta">Você já tinha concluído este jogo — os pontos valem uma vez só.</p>}
         </div>
       )}
     </div>

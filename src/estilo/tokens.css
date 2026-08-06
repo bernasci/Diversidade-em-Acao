@@ -1,150 +1,188 @@
 /* ==========================================================================
    Diversidade em Ação — tokens
 
-   Herdados do DOME GAMES (app/css/01-tokens.css), que por sua vez herdou do
-   DOME CRM: mesmos nomes, mesmos valores, para que os apps sejam reconhecíveis
-   como a mesma família. Paleta do Manual de Identidade (navy 2758C, ciano
-   2199C, Cool Gray 4C).
+   A CENA, que decide tudo o que vem abaixo: uma pessoa de 45 anos no
+   vestiário do turno, celular numa mão só, luz forte batendo na tela, dez
+   minutos entre uma coisa e outra. Não é alguém sentado numa mesa com tempo.
 
-   Regra de marca mantida: "cor vibrante só no jogo". A casca é navy/ciano/
-   cinza; bronze, prata, ouro e platina só aparecem em medalhas e no
-   certificado — nunca em navegação ou cabeçalho.
+   Disso saem quatro decisões, e nenhuma é estética:
 
-   Dois eixos de acessibilidade vivem aqui, e é de propósito: quem muda o
-   tamanho da fonte ou liga o alto contraste mexe em variável, não em regra.
-   Nenhum componente precisa saber que esses modos existem.
+   1. Tema claro e contraste alto. Sol na tela mata cinza sobre branco.
+   2. Alvos grandes. Uma mão, dedo grande, telefone às vezes molhado.
+   3. Uma coluna. A largura útil é a de um celular; o desktop é o caso raro.
+   4. Uma família tipográfica só. Menos fonte para baixar no 4G, e nada de
+      display em rótulo de botão — isto é UI de produto, não capa de revista.
+
+   Paleta da marca DOME (navy 2758C, ciano 2199C), herdada do CRM e do DOME
+   GAMES para os apps serem reconhecíveis como família. Estratégia de cor:
+   RESTRAINED — neutros + um acento. O ciano aparece em ação primária, seleção
+   e estado; nunca como enfeite. Ouro/prata/bronze só em medalha e certificado.
    ========================================================================== */
 
 :root {
-  /* marca */
-  --dome-navy: #001e62;
-  --dome-blue: #004aa1;
-  --dome-cyan: #00bbdc;
-  --dome-sky: #83d2e4;
-  --dome-navy-800: #0a2a72;
-  --dome-cyan-050: #e9f9fc;
-  --dome-cyan-800: #0a5468;
-  --dome-sky-050: #f1f9fc;
+  /* ---------------------------------------------------------------- marca */
+  --navy: #001e62;
+  --navy-700: #0a2a72;
+  --navy-900: #001542;
+  --azul: #004aa1;
+  --ciano: #00bbdc;
+  --ciano-fraco: #e6f7fb;
+  --ciano-medio: #b3e8f3;
+  --ciano-escuro: #05627a; /* texto sobre fundo ciano-fraco: 6.1:1 */
 
-  /* texto */
-  --ink: #141f3c;
-  --ink-2: #3d4a68;
-  --ink-3: #5a6785;
+  /* --------------------------------------------------------------- tinta
+     Nenhum destes é "cinza claro para ficar elegante". O mais claro que o
+     texto corrido chega é --ink-2, com 7,4:1 sobre a superfície branca. */
+  --ink: #101a33;
+  --ink-2: #38445f;
+  --ink-3: #5c6884; /* só rótulo e metadado, nunca texto corrido longo */
 
-  /* superfícies */
-  --bg: #f5f8fb;
-  --surface: #fff;
-  --surface-2: #eef3f9;
-  --linha: #dfe6f0;
+  /* ---------------------------------------------------------- superfícies */
+  --bg: #f4f7fb;
+  --superficie: #ffffff;
+  --superficie-2: #eef3f9; /* barras, painéis, estado desabilitado */
+  --superficie-3: #e3eaf4;
+  --linha: #d7e0ec;
+  --linha-forte: #b9c6d9;
 
-  /* estados */
-  --ok: #1e8e5a;
-  --ok-bg: #e3f3eb;
-  --alerta: #c23b22;
-  --alerta-bg: #fbe7e3;
-  --morno: #b8791a;
-  --morno-bg: #fbf1e0;
-  --neutro: #8a94a6;
-  --neutro-bg: #eef1f5;
+  /* ------------------------------------------------------------- estados */
+  --ok: #12724a;
+  --ok-bg: #e0f2e9;
+  --ok-linha: #9dd3ba;
+  --erro: #b3301a;
+  --erro-bg: #fbe6e2;
+  --erro-linha: #f0aa9b;
+  --atencao: #8f5a06;
+  --atencao-bg: #fbf0dc;
+  --atencao-linha: #e6c589;
 
-  /* medalhas — só aqui e no certificado */
-  --m-bronze: #b87333;
-  --m-prata: #9aa7b8;
-  --m-ouro: #e8b33c;
-  --m-platina: #7fd8e8;
+  /* ------------------------------------------------------------ medalhas */
+  --bronze: #a1622c;
+  --prata: #6b7a8d;
+  --ouro: #96700f;
+  --platina: #0e6a7d;
 
-  /* forma */
-  --raio: 14px;
-  --raio-s: 10px;
-  --raio-g: 20px;
-  --sombra: 0 0 0 1px rgba(0, 30, 98, 0.05), 0 6px 24px rgba(30, 27, 46, 0.08);
-  --sombra-alta: 0 0 0 1px rgba(0, 30, 98, 0.05), 0 8px 20px -6px rgba(0, 30, 98, 0.1),
-    0 28px 60px -18px rgba(0, 30, 98, 0.16);
+  /* ---------------------------------------------------------- tipografia
+     Uma família só, em pesos. UI de produto não precisa de par display +
+     texto, e cada arquivo a menos é meio segundo a menos no 4G.
+     Escala fixa em rem com razão ~1.2 — nada de clamp: título fluido que
+     encolhe dentro de um card fica pior, não melhor. */
+  --fonte: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
 
-  /* movimento */
+  --t-xs: 0.75rem; /* 12 · selo, legenda */
+  --t-sm: 0.875rem; /* 14 · metadado, ajuda */
+  --t-base: 1rem; /* 16 · corpo. NUNCA abaixo disso em celular */
+  --t-md: 1.125rem; /* 18 · destaque, pergunta */
+  --t-lg: 1.375rem; /* 22 · título de seção */
+  --t-xl: 1.75rem; /* 28 · título de tela */
+  --t-2xl: 2.25rem; /* 36 · número grande de resultado */
+
+  /* ------------------------------------------------------------- espaço
+     Base 4px. Usar sempre a escala: espaçamento arbitrário é o que faz um
+     layout parecer "quase certo" sem ninguém saber dizer por quê. */
+  --e-1: 0.25rem;
+  --e-2: 0.5rem;
+  --e-3: 0.75rem;
+  --e-4: 1rem;
+  --e-5: 1.5rem;
+  --e-6: 2rem;
+  --e-7: 3rem;
+
+  --largura: 46rem; /* coluna de leitura; ~70ch no corpo */
+  --largura-larga: 64rem; /* ranking e grades */
+
+  /* -------------------------------------------------------------- forma */
+  --r-sm: 8px;
+  --r: 12px;
+  --r-lg: 16px;
+  --r-full: 999px;
+
+  /* Sombras discretas: a hierarquia vem de borda e fundo, não de drop
+     shadow empilhada. */
+  --sombra: 0 1px 2px rgba(16, 26, 51, 0.06);
+  --sombra-md: 0 2px 8px rgba(16, 26, 51, 0.08);
+  --sombra-lg: 0 8px 28px rgba(16, 26, 51, 0.14);
+
+  /* ------------------------------------------------------------ movimento
+     150–250ms. A pessoa está numa tarefa, não assistindo a uma coreografia.
+     Saída exponencial, sem bounce. */
   --ease: cubic-bezier(0.22, 1, 0.36, 1);
-  --t-fast: 180ms;
-  --t-med: 300ms;
+  --rapido: 140ms;
+  --medio: 220ms;
 
-  /* tipografia */
-  --fonte-display: 'Sora', system-ui, sans-serif;
-  --fonte-ui: 'Inter', system-ui, -apple-system, sans-serif;
+  /* --------------------------------------------------------------- camadas
+     Escala semântica. Nunca 999, nunca 9999 — quando o número é arbitrário,
+     o próximo componente inventa um maior e ninguém entende a pilha. */
+  --z-base: 1;
+  --z-fixo: 10;
+  --z-painel: 20;
+  --z-fundo-modal: 30;
+  --z-modal: 40;
+  --z-aviso: 50;
 
-  /* Escala de fonte. A barra de acessibilidade mexe SÓ nesta variável; todo o
-     resto do app usa rem, então o app inteiro cresce junto e nada quebra. */
+  /* Alvo de toque. 44px é o piso do WCAG 2.5.5; 48 porque o alvo real é uma
+     mão só, em pé, às vezes com luva. */
+  --alvo: 3rem;
+
+  /* Escala de texto do painel de acessibilidade. Só esta variável muda; o
+     app inteiro é em rem, então cresce junto sem nada quebrar. */
   --escala: 1;
   font-size: calc(16px * var(--escala));
-
-  /* espaçamento */
-  --gap: 1rem;
-  --pad-tela: clamp(1rem, 0.5rem + 2vw, 2rem);
-  --largura-max: 68rem;
-
-  /* Alvo mínimo de toque. 44px é o piso do WCAG 2.5.5; aqui é 48 porque o
-     alvo real é uma mão só, no celular, às vezes com o braço ocupado. */
-  --alvo: 3rem;
 }
 
 /* --------------------------------------------------------------------------
    ALTO CONTRASTE
 
-   Não é "tema escuro": é a mesma estrutura com contraste empurrado bem acima
-   do mínimo AA. Ciano puro sobre navy passa de 8:1. Mantém as medalhas
-   distinguíveis entre si — trocar tudo por preto e branco tiraria a única
-   informação que a cor carrega no app.
+   Não é tema escuro por estética: é a mesma estrutura com o contraste
+   empurrado bem acima do mínimo AA, para tela suja e sol direto. As medalhas
+   continuam distinguíveis entre si — trocar tudo por preto e branco apagaria
+   a única informação que a cor carrega no app.
    -------------------------------------------------------------------------- */
 :root[data-contraste='alto'] {
-  --bg: #00122e;
-  --surface: #001e40;
-  --surface-2: #00294f;
-  --linha: #4d7fb3;
+  --bg: #00102a;
+  --superficie: #001b3d;
+  --superficie-2: #00264f;
+  --superficie-3: #003162;
+  --linha: #4a7cb0;
+  --linha-forte: #7aa6d4;
   --ink: #ffffff;
-  --ink-2: #d6e6f5;
-  --ink-3: #b9d2ea;
-  --dome-navy: #ffffff;
-  --dome-blue: #7fd8e8;
-  --dome-cyan: #4fe3ff;
-  --dome-cyan-050: #002f4d;
-  --dome-cyan-800: #cdf3fb;
-  --dome-sky-050: #002f4d;
-  --ok: #5ee5a0;
-  --ok-bg: #00351f;
-  --alerta: #ff9d8a;
-  --alerta-bg: #3d0f07;
-  --morno: #ffcd6b;
-  --morno-bg: #3a2705;
-  --neutro: #c3cede;
-  --neutro-bg: #002a4e;
-  --sombra: 0 0 0 1px #4d7fb3;
-  --sombra-alta: 0 0 0 2px #4d7fb3;
+  --ink-2: #dcebf9;
+  --ink-3: #bcd4ec;
+  --navy: #ffffff;
+  --azul: #7fdcef;
+  --ciano: #4fe3ff;
+  --ciano-fraco: #002d4a;
+  --ciano-medio: #00476f;
+  --ciano-escuro: #cdf3fb;
+  --ok: #63e8a4;
+  --ok-bg: #002d1b;
+  --ok-linha: #1c7a4f;
+  --erro: #ffa896;
+  --erro-bg: #3a0e06;
+  --erro-linha: #8e3520;
+  --atencao: #ffd27a;
+  --atencao-bg: #33240a;
+  --atencao-linha: #8a6a1e;
+  --bronze: #e0a76b;
+  --prata: #c3d0e0;
+  --ouro: #ffd76b;
+  --platina: #7fe6fb;
+  --sombra: none;
+  --sombra-md: none;
+  --sombra-lg: 0 0 0 2px var(--linha);
 }
 
 /* --------------------------------------------------------------------------
    MOVIMENTO DESLIGADO
 
-   Duas portas para o mesmo lugar: a preferência do sistema e o botão da barra
-   de acessibilidade. Quem tem o sistema configurado não precisa apertar nada;
-   quem não sabe que a configuração existe tem um botão.
+   Duas portas para o mesmo lugar: a preferência do sistema, para quem já a
+   configurou, e um botão, para quem não sabe que ela existe.
    -------------------------------------------------------------------------- */
 @media (prefers-reduced-motion: reduce) {
   :root:not([data-movimento='sim']) {
-    --t-fast: 0ms;
-    --t-med: 0ms;
+    --rapido: 0ms;
+    --medio: 0ms;
   }
-}
-:root[data-movimento='nao'] {
-  --t-fast: 0ms;
-  --t-med: 0ms;
-}
-:root[data-movimento='nao'] *,
-:root[data-movimento='nao'] *::before,
-:root[data-movimento='nao'] *::after {
-  animation-duration: 1ms !important;
-  animation-iteration-count: 1 !important;
-  transition-duration: 1ms !important;
-  scroll-behavior: auto !important;
-}
-@media (prefers-reduced-motion: reduce) {
   :root:not([data-movimento='sim']) *,
   :root:not([data-movimento='sim']) *::before,
   :root:not([data-movimento='sim']) *::after {
@@ -153,4 +191,17 @@
     transition-duration: 1ms !important;
     scroll-behavior: auto !important;
   }
+}
+
+:root[data-movimento='nao'] {
+  --rapido: 0ms;
+  --medio: 0ms;
+}
+:root[data-movimento='nao'] *,
+:root[data-movimento='nao'] *::before,
+:root[data-movimento='nao'] *::after {
+  animation-duration: 1ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 1ms !important;
+  scroll-behavior: auto !important;
 }

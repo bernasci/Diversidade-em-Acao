@@ -13,6 +13,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { CENAS } from '../conteudo/jogos'
 import { agora, type PropsJogo } from './contrato'
+import { Nota } from '../componentes/comuns'
 
 export default function Cenario({ aoConcluir, jaFeito }: PropsJogo) {
   const [i, setI] = useState(0)
@@ -55,7 +56,7 @@ export default function Cenario({ aoConcluir, jaFeito }: PropsJogo) {
               ? 'Em todas as situações você escolheu o caminho que trata a pessoa como profissional.'
               : 'As escolhas que não eram as melhores costumam vir da melhor das intenções — é o que as torna difíceis de perceber no dia a dia.'}
           </p>
-          {jaFeito && <p className="discreto">Você já tinha concluído este jogo — os pontos valem uma vez só.</p>}
+          {jaFeito && <p className="meta">Você já tinha concluído este jogo — os pontos valem uma vez só.</p>}
         </div>
       </div>
     )
@@ -65,16 +66,17 @@ export default function Cenario({ aoConcluir, jaFeito }: PropsJogo) {
 
   return (
     <div className="jogo">
-      <div className="jogo__instrucao">
-        <strong>Como jogar:</strong> quatro situações reais de trabalho. Escolha o que você faria e leia o
-        que acontece depois. Não existe reprovação — existe consequência.
+      <div className="jogo__barra">
+        <span>
+          Situação <b>{i + 1}</b>/{CENAS.length}
+        </span>
+        <span>{cena.titulo}</span>
       </div>
 
-      <div className="jogo__topo">
-        <span>
-          Situação {i + 1} de {CENAS.length}: {cena.titulo}
-        </span>
-      </div>
+      <p className="meta">
+        Escolha o que você faria e leia o que acontece depois. Não existe reprovação — existe
+        consequência.
+      </p>
 
       <div className="cenario">
         <p className="cenario__situacao">{cena.situacao}</p>
@@ -83,29 +85,32 @@ export default function Cenario({ aoConcluir, jaFeito }: PropsJogo) {
           <fieldset className="cenario__opcoes">
             <legend className="so-leitor">O que você faz?</legend>
             {cena.opcoes.map((o, k) => (
-              <button key={k} type="button" className="cenario__opcao" onClick={() => escolher(k)}>
+              <button key={k} type="button" className="opcao" onClick={() => escolher(k)}>
                 {o.texto}
               </button>
             ))}
           </fieldset>
         ) : (
           <>
-            <div className="cenario__desdobramento" role="status" aria-live="polite">
-              <span className="cenario__nota">
-                <span aria-hidden="true">
-                  {opcao.nota === 'boa' ? '✓' : opcao.nota === 'mediana' ? '≈' : '✗'}
-                </span>
+            <Nota
+              tipo={opcao.nota === 'boa' ? 'ok' : opcao.nota === 'mediana' ? 'atencao' : 'erro'}
+              ico={opcao.nota === 'boa' ? '✓' : opcao.nota === 'mediana' ? '≈' : '✕'}
+              vivo
+            >
+              <b>
                 {opcao.nota === 'boa'
                   ? 'Melhor caminho'
                   : opcao.nota === 'mediana'
                     ? 'Resolve pela metade'
                     : 'Custa caro'}
-              </span>
-              <p>{opcao.desdobramento}</p>
+              </b>
+              {opcao.desdobramento}
+            </Nota>
+            <div className="acoes">
+              <button type="button" className="botao botao--primario" onClick={seguir} autoFocus>
+                {i + 1 >= CENAS.length ? 'Ver resultado' : 'Próxima situação'}
+              </button>
             </div>
-            <button type="button" className="botao botao--primario" onClick={seguir} autoFocus>
-              {i + 1 >= CENAS.length ? 'Ver resultado' : 'Próxima situação'}
-            </button>
           </>
         )}
       </div>

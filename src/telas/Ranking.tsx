@@ -1,27 +1,31 @@
 /* ==========================================================================
    Ranking.tsx — quem quis aparecer.
 
-   Duas decisões que valem o comentário:
+   Três decisões que valem o comentário:
 
-   1. É OPT-IN, e desligado por padrão. Num jogo sobre inclusão, expor o nome
-      e a pontuação de 5.602 pessoas sem que elas tenham pedido seria estranho
-      no mínimo. Quem não optou não aparece — e pode sair depois, no Perfil.
+   1. É OPT-IN, desligado por padrão. Num jogo sobre inclusão, expor nome e
+      pontuação de 5.602 pessoas sem que elas tenham pedido seria estranho no
+      mínimo. Quem não optou não aparece, e pode sair depois no Perfil.
 
-   2. SEM POLLING. A lista é buscada uma vez, ao abrir, e tem um botão de
-      atualizar. O DOME GAMES consulta o ranking a cada 15 segundos; com 5.602
-      pessoas isso sozinho consome os 5 GB de egress do plano Free do Supabase
-      antes do fim da campanha.
+   2. SEM POLLING. A lista é buscada ao abrir e tem um botão de atualizar. O
+      DOME GAMES consulta o ranking a cada 15 segundos; com 5.602 pessoas isso
+      sozinho consome os 5 GB de egress do plano Free antes do fim da campanha.
 
-   A leitura vem da view materializada `ranking_publico`, atualizada a cada
-   cinco minutos. Ela expõe apelido, área e pontos — nunca e-mail, nome
-   completo ou id.
+   3. NO CELULAR A TABELA VIRA LISTA. Cada linha é um bloco com posição, nome,
+      área e pontos — em vez de uma tabela com rolagem lateral, que é o mesmo
+      que esconder metade das colunas. A transformação é só CSS: o HTML
+      continua sendo uma <table> de verdade, com cabeçalho e <caption>, que é
+      o que o leitor de tela precisa para navegar por coluna.
+
+   A leitura vem da view materializada `ranking_publico`, que expõe apelido,
+   área e pontos — nunca e-mail, nome completo ou id.
    ========================================================================== */
 
-import { useCallback, useEffect, useState, type CSSProperties } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { buscarRanking } from '../nucleo/api'
 import { useEstado } from '../nucleo/estado'
-import { Carregando } from '../componentes/comuns'
+import { Carregando, Nota, Vazio } from '../componentes/comuns'
 import type { LinhaRanking } from '../nucleo/tipos'
 
 export default function Ranking() {
@@ -39,117 +43,92 @@ export default function Ranking() {
   }, [carregar])
 
   const filtradas = (linhas ?? []).filter(
-    (l) =>
-      !busca.trim() ||
-      `${l.apelido} ${l.area ?? ''}`.toLowerCase().includes(busca.trim().toLowerCase()),
+    (l) => !busca.trim() || `${l.apelido} ${l.area ?? ''}`.toLowerCase().includes(busca.trim().toLowerCase()),
   )
 
   return (
-    <div className="pilha--g pilha">
-      <header className="pilha">
+    <div className="pilha-g">
+      <div className="pilha-2">
         <h1>Ranking</h1>
-        <p style={{ color: 'var(--ink-2)' }}>
-          Aparecem aqui apenas as pessoas que escolheram participar do ranking. A lista é atualizada a
-          cada poucos minutos.
+        <p className="prosa">
+          Aparecem aqui apenas as pessoas que escolheram participar. A lista é atualizada a cada
+          poucos minutos.
         </p>
-      </header>
+      </div>
 
       {jogador && !jogador.opt_in && (
-        <div className="cartao pilha">
-          <p>
-            <strong>Você não está no ranking.</strong> Seus pontos e seu progresso continuam contando
-            normalmente — o ranking é só a parte pública.
-          </p>
-          <p>
-            <Link to="/perfil">Entrar no ranking pelo Perfil →</Link>
-          </p>
-        </div>
+        <Nota tipo="info">
+          <b>Você não está no ranking.</b>
+          Seus pontos e seu progresso continuam contando normalmente — o ranking é só a parte
+          pública. <Link to="/perfil">Entrar no ranking →</Link>
+        </Nota>
       )}
 
-      <div className="linha">
-        <div className="campo" style={{ flex: 1, minWidth: '14rem' }}>
-          <label htmlFor="busca-ranking">Buscar por apelido ou área</label>
-          <input
-            id="busca-ranking"
-            type="search"
-            value={busca}
-            onChange={(e) => setBusca(e.target.value)}
-            placeholder="Ex.: Operações"
-          />
-        </div>
-        <button type="button" className="botao botao--secundario" onClick={() => void carregar()}>
-          Atualizar
-        </button>
+      <div className="campo">
+        <label htmlFor="busca-ranking">Buscar por apelido ou área</label>
+        <input
+          id="busca-ranking"
+          type="search"
+          value={busca}
+          onChange={(e) => setBusca(e.target.value)}
+          placeholder="Ex.: Operações"
+        />
       </div>
 
       {linhas === null ? (
-        <Carregando texto="Buscando o ranking…" />
+        <Carregando texto="Buscando o ranking…" linhas={5} />
       ) : filtradas.length === 0 ? (
-        <p className="cartao centro discreto">
-          {linhas.length === 0
-            ? 'Ninguém entrou no ranking ainda. Que tal ser a primeira pessoa?'
-            : 'Nenhum resultado para essa busca.'}
-        </p>
+        <Vazio ico={linhas.length === 0 ? '🏁' : '🔍'}>
+          {linhas.length === 0 ? (
+            <>
+              <strong>O ranking ainda está vazio.</strong> Ele mostra quem optou por aparecer — dá
+              para ser a primeira pessoa da lista ativando a opção no <Link to="/perfil">Perfil</Link>.
+            </>
+          ) : (
+            <>
+              Nenhum resultado para <strong>{busca}</strong>. Tente parte do apelido ou o nome da área.
+            </>
+          )}
+        </Vazio>
       ) : (
-        <div className="cartao" style={{ padding: 0, overflowX: 'auto' }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+        <>
+          <table className="tabela">
             <caption className="so-leitor">
-              Ranking geral, ordenado por pontos, com {filtradas.length} participantes listados
+              Ranking geral por pontos, com {filtradas.length} participantes
             </caption>
             <thead>
               <tr>
-                <th scope="col" style={celulaCabecalho}>
-                  #
-                </th>
-                <th scope="col" style={celulaCabecalho}>
-                  Participante
-                </th>
-                <th scope="col" style={celulaCabecalho}>
-                  Área
-                </th>
-                <th scope="col" style={{ ...celulaCabecalho, textAlign: 'right' }}>
-                  Pontos
-                </th>
+                <th scope="col">#</th>
+                <th scope="col">Participante</th>
+                <th scope="col">Área</th>
+                <th scope="col">Pontos</th>
               </tr>
             </thead>
             <tbody>
               {filtradas.map((l) => {
-                const eu = jogador?.opt_in && jogador.apelido === l.apelido
+                const eu = Boolean(jogador?.opt_in && jogador.apelido === l.apelido)
                 return (
-                  <tr key={`${l.posicao}-${l.apelido}`} style={eu ? { background: 'var(--dome-cyan-050)' } : undefined}>
-                    <td style={{ ...celula, fontVariantNumeric: 'tabular-nums', fontWeight: 700 }}>
-                      {l.posicao}
-                    </td>
-                    <td style={celula}>
+                  <tr key={`${l.posicao}-${l.apelido}`} data-eu={eu ? 'sim' : undefined}>
+                    <td className="col-pos">{l.posicao}</td>
+                    <td className="col-nome">
                       {l.apelido}
                       {eu && <strong> · você</strong>}
                     </td>
-                    <td style={{ ...celula, color: 'var(--ink-3)' }}>{l.area ?? '—'}</td>
-                    <td style={{ ...celula, textAlign: 'right', fontVariantNumeric: 'tabular-nums' }}>
-                      {l.pts}
-                    </td>
+                    <td className="col-area">{l.area ?? '—'}</td>
+                    <td className="col-pts">{l.pts}</td>
                   </tr>
                 )
               })}
             </tbody>
           </table>
-        </div>
+
+          <div className="acoes">
+            <button type="button" className="botao botao--secundario" onClick={() => void carregar()}>
+              Atualizar a lista
+            </button>
+          </div>
+        </>
       )}
     </div>
   )
-}
-
-const celulaCabecalho: CSSProperties = {
-  textAlign: 'left',
-  padding: '.75rem 1rem',
-  borderBottom: '1px solid var(--linha)',
-  fontSize: '.8125rem',
-  textTransform: 'uppercase',
-  letterSpacing: '.06em',
-  color: 'var(--ink-3)',
-}
-
-const celula: CSSProperties = {
-  padding: '.75rem 1rem',
-  borderBottom: '1px solid var(--linha)',
 }

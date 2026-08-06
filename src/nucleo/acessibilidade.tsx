@@ -1,17 +1,32 @@
 /* ==========================================================================
-   acessibilidade.tsx — as preferências de leitura, e a barra que as controla.
+   acessibilidade.tsx — tamanho do texto, contraste e movimento.
 
-   Três controles, e são os três que mais mudam a vida de quem precisa:
-   tamanho da fonte, contraste e movimento. Todos escrevem em atributo do
-   <html> ou em uma variável CSS — nenhum componente do app sabe que estes
-   modos existem, e é por isso que nenhum deles pode quebrar por causa deles.
+   ANTES isto era uma faixa fixa no topo de toda tela, com cinco botões
+   sempre visíveis. Ocupava a primeira linha de um app cuja tela útil é a de
+   um celular, e era a primeira coisa que aparecia — antes do nome do jogo.
+   Virou um botão no cabeçalho que abre um painel.
 
-   Ficam numa barra fixa e visível, não escondidos no perfil. Configuração de
-   acessibilidade que exige três cliques para ser encontrada é configuração
-   que não existe para quem chegou pela primeira vez.
+   O que NÃO mudou, e por quê: os controles continuam alcançáveis já na tela
+   de login. Num jogo sobre inclusão de PcD, quem precisa de texto maior
+   precisa dele para ler o formulário de entrada — mandar essa pessoa
+   "entrar primeiro e ajustar no perfil depois" seria pedir que ela leia o
+   que não consegue ler.
+
+   Os três controles escrevem em atributo do <html> ou numa variável CSS.
+   Nenhum componente do app sabe que estes modos existem, e é por isso que
+   nenhum deles pode quebrar por causa deles.
    ========================================================================== */
 
-import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react'
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type ReactNode,
+} from 'react'
 
 type Movimento = 'auto' | 'sim' | 'nao'
 
@@ -76,9 +91,6 @@ export function ProvedorAcessibilidade({ children }: { children: ReactNode }) {
       aumentar: () => mover(1),
       diminuir: () => mover(-1),
       alternarContraste: () => setPref((p) => ({ ...p, contraste: !p.contraste })),
-      // 'auto' respeita o sistema. O botão alterna entre "com movimento" e
-      // "sem movimento" de forma explícita, para quem não sabe que a
-      // preferência do sistema existe.
       alternarMovimento: () =>
         setPref((p) => ({ ...p, movimento: p.movimento === 'nao' ? 'sim' : 'nao' })),
       restaurar: () => setPref(PADRAO),
@@ -95,43 +107,112 @@ export function useAcessibilidade(): Contexto {
   return c
 }
 
-/* ------------------------------- A BARRA -------------------------------- */
+/* ------------------------------ O CONTROLE ------------------------------ */
 
-export function BarraAcessibilidade() {
+export function BotaoAcessibilidade() {
   const a = useAcessibilidade()
+  const [aberto, setAberto] = useState(false)
+  const caixa = useRef<HTMLDivElement>(null)
+  const botao = useRef<HTMLButtonElement>(null)
+
+  /* Fechar com Esc e com clique fora. Sem isso, um painel aberto no celular
+     só fecha voltando ao botão — e quem abriu por engano fica preso. */
+  useEffect(() => {
+    if (!aberto) return
+
+    const tecla = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setAberto(false)
+        botao.current?.focus()
+      }
+    }
+    const fora = (e: MouseEvent) => {
+      const alvo = e.target as Node
+      if (!caixa.current?.contains(alvo) && !botao.current?.contains(alvo)) setAberto(false)
+    }
+
+    document.addEventListener('keydown', tecla)
+    document.addEventListener('mousedown', fora)
+    return () => {
+      document.removeEventListener('keydown', tecla)
+      document.removeEventListener('mousedown', fora)
+    }
+  }, [aberto])
+
   const semMovimento = a.movimento === 'nao'
 
   return (
-    <div className="barra-a11y" role="region" aria-label="Preferências de acessibilidade">
-      <span className="barra-a11y__titulo" aria-hidden="true">
-        Acessibilidade
-      </span>
-
-      <button type="button" onClick={a.diminuir} disabled={a.escala <= ESCALAS[0]}>
-        A<span aria-hidden="true">−</span>
-        <span className="so-leitor">Diminuir o tamanho do texto</span>
+    <>
+      <button
+        ref={botao}
+        type="button"
+        className="botao-icone"
+        aria-expanded={aberto}
+        aria-label="Preferências de acessibilidade"
+        onClick={() => setAberto((v) => !v)}
+      >
+        <span aria-hidden="true">☰</span>
       </button>
 
-      <span aria-live="polite" className="so-leitor">
-        Texto em {Math.round(a.escala * 100)}%
-      </span>
+      {aberto && (
+        <div ref={caixa} className="a11y" role="dialog" aria-label="Preferências de acessibilidade">
+          <p className="a11y__titulo">Acessibilidade</p>
 
-      <button type="button" onClick={a.aumentar} disabled={a.escala >= ESCALAS[ESCALAS.length - 1]}>
-        A<span aria-hidden="true">+</span>
-        <span className="so-leitor">Aumentar o tamanho do texto</span>
-      </button>
+          <div className="a11y__grupo">
+            <span>Tamanho do texto</span>
+            <button
+              type="button"
+              className="a11y__botao"
+              onClick={a.diminuir}
+              disabled={a.escala <= ESCALAS[0]}
+            >
+              <span aria-hidden="true">A−</span>
+              <span className="so-leitor">Diminuir o texto</span>
+            </button>
+            <button
+              type="button"
+              className="a11y__botao"
+              onClick={a.aumentar}
+              disabled={a.escala >= ESCALAS[ESCALAS.length - 1]}
+            >
+              <span aria-hidden="true">A+</span>
+              <span className="so-leitor">Aumentar o texto</span>
+            </button>
+          </div>
 
-      <button type="button" aria-pressed={a.contraste} onClick={a.alternarContraste}>
-        <span aria-hidden="true">◐</span> Alto contraste
-      </button>
+          <p aria-live="polite" className="so-leitor">
+            Texto em {Math.round(a.escala * 100)} por cento
+          </p>
 
-      <button type="button" aria-pressed={semMovimento} onClick={a.alternarMovimento}>
-        <span aria-hidden="true">⏸</span> Sem animação
-      </button>
+          <div className="a11y__grupo">
+            <span>Alto contraste</span>
+            <button
+              type="button"
+              className="a11y__botao"
+              aria-pressed={a.contraste}
+              onClick={a.alternarContraste}
+            >
+              {a.contraste ? 'Ligado' : 'Desligado'}
+            </button>
+          </div>
 
-      <button type="button" onClick={a.restaurar}>
-        Restaurar
-      </button>
-    </div>
+          <div className="a11y__grupo">
+            <span>Animações</span>
+            <button
+              type="button"
+              className="a11y__botao"
+              aria-pressed={semMovimento}
+              onClick={a.alternarMovimento}
+            >
+              {semMovimento ? 'Desligadas' : 'Ligadas'}
+            </button>
+          </div>
+
+          <button type="button" className="botao botao--fantasma" onClick={a.restaurar}>
+            Restaurar o padrão
+          </button>
+        </div>
+      )}
+    </>
   )
 }

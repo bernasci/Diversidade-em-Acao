@@ -72,21 +72,24 @@ export default function QuebraCabeca({ aoConcluir, jaFeito }: PropsJogo) {
 
   return (
     <div className="jogo">
-      <div className="jogo__instrucao">
-        <strong>Como jogar:</strong> as nove peças contam a jornada de acessibilidade na ordem em que ela
-        acontece — da chegada ao prédio até o crescimento na empresa. Coloque-as na ordem certa.
-        <ul>
-          <li>Ative uma peça e depois outra para trocá-las de lugar.</li>
-          <li>Peça no lugar certo fica marcada com "no lugar".</li>
-        </ul>
+      <div className="jogo__barra">
+        <span>
+          No lugar <b>{noLugar}</b>/{TOTAL}
+        </span>
+        <span>
+          Trocas <b>{trocas}</b>
+        </span>
       </div>
 
-      <div className="jogo__topo">
-        <span>
-          No lugar: {noLugar}/{TOTAL}
-        </span>
-        <span className="jogo__placar">Trocas: {trocas}</span>
-      </div>
+      <details className="jogo__como">
+        <summary>Como jogar</summary>
+        As nove peças contam a jornada de acessibilidade na ordem em que ela acontece — da chegada ao
+        prédio até o crescimento na empresa. Coloque-as na ordem certa.
+        <ul>
+          <li>Ative uma peça e depois outra para trocá-las de lugar.</li>
+          <li>Peça certa fica verde e é anunciada como "no lugar certo".</li>
+        </ul>
+      </details>
 
       <div className="quebra">
         <div className="quebra__grade" role="group" aria-label="Tabuleiro do quebra-cabeça">
@@ -97,19 +100,16 @@ export default function QuebraCabeca({ aoConcluir, jaFeito }: PropsJogo) {
               <button
                 key={pos}
                 type="button"
-                className="quebra__peca"
+                className="peca"
                 aria-pressed={selecionado === pos}
                 data-certa={certa ? 'sim' : undefined}
                 onClick={() => tocar(pos)}
                 aria-label={`Posição ${pos + 1} de ${TOTAL}: ${p.texto}. ${certa ? 'No lugar certo.' : 'Fora do lugar.'}`}
               >
-                <span aria-hidden="true">{p.ico}</span>
-                <span aria-hidden="true">{p.texto}</span>
-                {certa && (
-                  <span className="so-leitor" aria-hidden="true">
-                    no lugar
-                  </span>
-                )}
+                <i aria-hidden="true">{p.ico}</i>
+                <span className="peca__texto" aria-hidden="true">
+                  {p.texto}
+                </span>
               </button>
             )
           })}
@@ -128,7 +128,7 @@ export default function QuebraCabeca({ aoConcluir, jaFeito }: PropsJogo) {
             <li>Sair em segurança</li>
             <li>Crescer na empresa</li>
           </ol>
-          <p className="discreto" style={{ margin: 0 }}>
+          <p className="meta" style={{ marginTop: '.5rem' }}>
             Repare que a acessibilidade não termina na rampa: ela vai até a promoção.
           </p>
         </div>
@@ -144,7 +144,7 @@ export default function QuebraCabeca({ aoConcluir, jaFeito }: PropsJogo) {
           <p>
             <strong>Jornada montada</strong> em {trocas} trocas.
           </p>
-          {jaFeito && <p className="discreto">Você já tinha concluído este jogo — os pontos valem uma vez só.</p>}
+          {jaFeito && <p className="meta">Você já tinha concluído este jogo — os pontos valem uma vez só.</p>}
         </div>
       )}
     </div>

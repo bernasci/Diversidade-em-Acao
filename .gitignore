@@ -11,6 +11,10 @@ tsconfig.tsbuildinfo
 supabase/.temp/
 .vite/
 
+# Pacotes de skill que o OneDrive sincroniza para dentro desta pasta. Não são
+# do projeto, mas aparecem na raiz e poluem o `git status`.
+*.skill
+
 # A lista do RH nunca entra no repositório: são 5.602 e-mails de pessoas reais.
 ferramentas/lista*.csv
 ferramentas/*.xlsx
