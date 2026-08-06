@@ -18,7 +18,6 @@ import { emailPlausivel } from '../nucleo/sessao'
 import { ErroApi } from '../nucleo/tipos'
 import { CONFIGURADO, MENSAGEM_SEM_CONFIG } from '../nucleo/api'
 import { Erro } from '../componentes/comuns'
-import { MISSOES } from '../conteudo/missoes'
 
 export default function Entrada() {
   const { entrar } = useEstado()
@@ -51,8 +50,7 @@ export default function Entrada() {
   }
 
   return (
-    <>
-      <section className="palco">
+    <section className="palco">
         <div className="palco__pilha">
           <div className="pilha-2">
             <svg
@@ -116,29 +114,6 @@ export default function Entrada() {
             <strong>DOME</strong> Serviços Integrados · Diversidade &amp; Inclusão
           </p>
         </div>
-      </section>
-
-      <div className="faixa pilha">
-        <h2>O que você vai encontrar</h2>
-        <ol className="trilha">
-          {MISSOES.map((m, i) => (
-            <li key={m.id} className="trilha__item">
-              <span className="trilha__num" aria-hidden="true">
-                {i + 1}
-              </span>
-              <div className="trilha__link" style={{ cursor: 'default' }}>
-                <span className="trilha__nome">{m.nome}</span>
-                <span className="trilha__tema">{m.tema}</span>
-              </div>
-            </li>
-          ))}
-        </ol>
-        <p className="meta">
-          Cada missão tem um jogo e cinco perguntas, e leva cerca de dez minutos. O jogo funciona por
-          teclado e leitor de tela, tem tradução em Libras e permite ajustar o tamanho do texto e o
-          contraste no botão ☰ do topo.
-        </p>
-      </div>
-    </>
+    </section>
   )
 }

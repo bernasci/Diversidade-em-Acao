@@ -285,14 +285,6 @@
   color: var(--ink-2);
 }
 
-/* Conteúdo que vem depois do palco, já fora da cena. */
-.faixa {
-  width: 100%;
-  max-width: var(--largura);
-  margin-inline: auto;
-  padding: var(--e-6) var(--e-4) var(--e-7);
-}
-
 /* -------------------------------------------------------------------- HERÓI
    O bloco de cor cheia no topo da tela. É ele que faz a diferença entre
    "sistema interno" e "jogo": navy ocupando um terço da primeira tela, com o

@@ -265,9 +265,17 @@ a:hover {
 .conteudo--largo {
   max-width: var(--largura-larga);
 }
+/* A entrada é uma tela só, e a cena precisa ocupá-la inteira: sem isto, o
+   gradiente termina onde o formulário termina e sobra uma faixa clara embaixo
+   em telas altas. */
 .conteudo--palco {
   max-width: none;
   padding: 0;
+  display: flex;
+  flex-direction: column;
+}
+.conteudo--palco > .palco {
+  flex: 1;
 }
 .conteudo:focus {
   outline: none;
