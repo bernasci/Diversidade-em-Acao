@@ -17,6 +17,7 @@
 
 import { useEffect, useRef } from 'react'
 import { NavLink, Navigate, Route, Routes, useLocation } from 'react-router-dom'
+import { Award, Map, Trophy, User } from 'lucide-react'
 import { BotaoAcessibilidade } from './nucleo/acessibilidade'
 import { useEstado } from './nucleo/estado'
 import { Carregando } from './componentes/comuns'
@@ -28,11 +29,14 @@ import Ranking from './telas/Ranking'
 import Perfil from './telas/Perfil'
 import Certificado from './telas/Certificado'
 
+/* Ícones do lucide-react, importados um a um: o bundler descarta o resto da
+   biblioteca, e o que sobra são quatro SVGs inline. Os glifos de texto que
+   estavam aqui antes (◆ ▲ ★ ●) renderizavam diferente em cada sistema. */
 const ABAS = [
-  { para: '/', ico: '◆', rotulo: 'Missões' },
-  { para: '/ranking', ico: '▲', rotulo: 'Ranking' },
-  { para: '/certificado', ico: '★', rotulo: 'Certificado' },
-  { para: '/perfil', ico: '●', rotulo: 'Perfil' },
+  { para: '/', Ico: Map, rotulo: 'Missões' },
+  { para: '/ranking', Ico: Trophy, rotulo: 'Ranking' },
+  { para: '/certificado', Ico: Award, rotulo: 'Certificado' },
+  { para: '/perfil', Ico: User, rotulo: 'Perfil' },
 ]
 
 const TITULOS: Record<string, string> = {
@@ -109,10 +113,10 @@ export default function App() {
 
       {jogador && (
         <nav className="nav" aria-label="Seções do jogo">
-          {ABAS.map((a) => (
-            <NavLink key={a.para} to={a.para} end={a.para === '/'} className="nav__item">
-              <i aria-hidden="true">{a.ico}</i>
-              {a.rotulo}
+          {ABAS.map(({ para, Ico, rotulo }) => (
+            <NavLink key={para} to={para} end={para === '/'} className="nav__item">
+              <Ico aria-hidden="true" strokeWidth={2.25} />
+              {rotulo}
             </NavLink>
           ))}
         </nav>
