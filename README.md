@@ -151,6 +151,33 @@ Pontuação: 10 por mini-game + 2 por acerto no quiz (10 por missão) + 20 de b�
 
 ---
 
+## Marca e peças de divulgação
+
+Tudo em [`public/`](public/), pronto para uso:
+
+| Arquivo | Para quê |
+| --- | --- |
+| `marca.svg` | a marca do jogo — favicon e uso em tela, em qualquer tamanho |
+| `favicon-32.png` · `apple-touch-icon.png` | onde SVG não é lido (Safari antigo, atalho de iPhone, e-mail) |
+| `divulgacao.png` | **1200×630** — a imagem que aparece ao colar o link no WhatsApp, Teams ou e-mail |
+| `dome-branca.png` · `dome-cor.png` | o logotipo oficial da DOME, recortado e reduzido para web (9 KB) |
+
+**A marca do jogo é o arco da DOME** — o mesmo elemento que cobre o M no logotipo — **com três
+pessoas embaixo**, de alturas diferentes e apoiadas na mesma linha de base. É o desenho da equidade:
+chão igual, gente diferente.
+
+O que ela **não** usa, e é decisão de conteúdo: o símbolo internacional de acesso (a cadeira de
+rodas). Reduzir "pessoa com deficiência" a cadeira de rodas é exatamente o que a Missão 2 ensina a
+não fazer — a maior parte das deficiências é invisível.
+
+> **Antes de divulgar:** as tags `og:image` no [`index.html`](index.html) usam caminho relativo. O
+> WhatsApp e a maioria dos leitores exigem URL **absoluta** — troque pelo endereço real depois do
+> deploy, senão o link aparece sem imagem.
+
+Os originais da marca DOME ficam em `IntraDOME/FONTES DOME/01. Logo DOME/`. Os arquivos aqui foram
+recortados (sem o descritor "GRANSERVICES – PRUMO LOGÍSTICA", ilegível em tamanho de tela) e
+reduzidos para 420px de largura.
+
 ## Acessibilidade
 
 Um jogo sobre inclusão de PcD que não seja operável por teclado e leitor de tela se desqualifica

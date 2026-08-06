@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Diversidade em Ação">
+  <title>Diversidade em Ação</title>
+  <!--
+    A marca do jogo é o arco da DOME — o mesmo elemento que cobre o M no
+    logotipo — com pessoas embaixo. É literalmente a ideia da campanha:
+    gente diferente sob a mesma cúpula.
+
+    O que NÃO foi usado, e é uma decisão de conteúdo, não de estética: o
+    símbolo internacional de acesso (a cadeira de rodas). Reduzir "pessoa com
+    deficiência" a cadeira de rodas é exatamente o que a Missão 2 deste jogo
+    ensina a não fazer — a maior parte das deficiências é invisível. Três
+    figuras diferentes dizem plural sem estereotipar nenhuma.
+
+    Desenhada para 16px: quatro formas, contraste máximo, nenhum detalhe que
+    suma. No favicon lê-se "arco com gente embaixo", que é o suficiente.
+  -->
+  <rect width="64" height="64" rx="14" fill="#001E62"/>
+  <path d="M15 36a17 17 0 0 1 34 0" fill="none" stroke="#00BBDC" stroke-width="7"/>
+  <!-- Todas as figuras apoiam na mesma linha de base (y=54) e têm alturas
+       diferentes. É o desenho da equidade: chão igual, gente diferente. -->
+  <g fill="#FFFFFF">
+    <circle cx="22" cy="42" r="3"/>
+    <rect x="19" y="45.6" width="6" height="8.4" rx="3"/>
+    <circle cx="42" cy="42.6" r="2.9"/>
+    <rect x="39.1" y="46.1" width="5.8" height="7.9" rx="2.9"/>
+  </g>
+  <g fill="#83D2E4">
+    <circle cx="32" cy="40" r="3.4"/>
+    <rect x="28.6" y="44" width="6.8" height="10" rx="3.4"/>
+  </g>
+</svg>

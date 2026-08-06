@@ -180,13 +180,27 @@ a:hover {
   text-decoration: none;
   min-width: 0;
 }
-.marca span {
+.marca__dome {
+  flex: none;
+  height: 1.125rem;
+  width: auto;
+}
+.marca__risco {
+  flex: none;
+  width: 1px;
+  height: 1.25rem;
+  background: rgba(255, 255, 255, 0.32);
+}
+:root[data-contraste='alto'] .marca__risco {
+  background: var(--linha);
+}
+/* O nome do jogo cede primeiro: numa tela de 320px com o placar do lado, é
+   ele que trunca, nunca a marca da empresa. */
+.marca__nome {
+  min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-}
-.marca svg {
-  flex: none;
 }
 
 .cabecalho__acoes {

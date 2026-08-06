@@ -53,22 +53,7 @@ export default function Entrada() {
     <section className="palco">
         <div className="palco__pilha">
           <div className="pilha-2">
-            <svg
-              width="44"
-              height="44"
-              viewBox="0 0 64 64"
-              aria-hidden="true"
-              style={{ margin: '0 auto' }}
-            >
-              <circle cx="32" cy="13" r="6" fill="#00BBDC" />
-              <path
-                d="M20 26h24M32 26v14M32 40h11M32 40l-9 11"
-                stroke="#00BBDC"
-                strokeWidth="5"
-                strokeLinecap="round"
-                fill="none"
-              />
-            </svg>
+            <img src="/marca.svg" alt="" width="64" height="64" className="palco__marca" />
             <h1 className="palco__titulo">Diversidade em Ação</h1>
             <p className="palco__sub">
               Cinco missões sobre a inclusão de Pessoas com Deficiência no mundo do trabalho.
@@ -110,8 +95,12 @@ export default function Entrada() {
             </button>
           </form>
 
+          {/* A assinatura da empresa fecha a cena, como no Painel de Projetos:
+              o jogo é da DOME, e é a última coisa que a pessoa vê antes de
+              entrar. */}
           <p className="palco__pe">
-            <strong>DOME</strong> Serviços Integrados · Diversidade &amp; Inclusão
+            <img src="/dome-branca.png" alt="DOME" />
+            <span>Serviços Integrados · Diversidade &amp; Inclusão</span>
           </p>
         </div>
     </section>

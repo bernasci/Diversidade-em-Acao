@@ -114,18 +114,13 @@ export default function App() {
           diferença entre uma composição e um empilhamento. Sobra o botão de
           acessibilidade, que precisa estar lá desde o login. */}
       <header className={`cabecalho${entrando ? ' cabecalho--palco' : ''}`}>
+        {/* Co-assinatura: a marca da DOME primeiro, o nome do jogo depois,
+            separados por um filete. É o que faz a tela ser reconhecida como
+            um produto da empresa antes de ser reconhecida como um jogo. */}
         <span className="marca">
-          <svg width="24" height="24" viewBox="0 0 64 64" aria-hidden="true">
-            <circle cx="32" cy="13" r="6" fill="#00BBDC" />
-            <path
-              d="M20 26h24M32 26v14M32 40h11M32 40l-9 11"
-              stroke="#00BBDC"
-              strokeWidth="5"
-              strokeLinecap="round"
-              fill="none"
-            />
-          </svg>
-          <span>Diversidade em Ação</span>
+          <img src="/dome-branca.png" alt="DOME" className="marca__dome" />
+          <span className="marca__risco" aria-hidden="true" />
+          <span className="marca__nome">Diversidade em Ação</span>
         </span>
 
         <div className="cabecalho__acoes">
