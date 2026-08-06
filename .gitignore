@@ -1,0 +1,15 @@
+node_modules/
+dist/
+.env
+.env.local
+*.local
+.vercel
+.DS_Store
+
+# caches de build e artefatos de ferramenta
+tsconfig.tsbuildinfo
+supabase/.temp/
+
+# A lista do RH nunca entra no repositório: são 5.602 e-mails de pessoas reais.
+ferramentas/lista*.csv
+ferramentas/*.xlsx

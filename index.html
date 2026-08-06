@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#001E62" />
+  <meta name="description" content="Diversidade em Ação — jornada de 5 missões sobre a inclusão de Pessoas com Deficiência no mundo do trabalho." />
+  <title>Diversidade em Ação</title>
+
+  <!-- Marca: a cúpula da DOME sobre o símbolo internacional de acesso, em navy
+       e ciano. Inline para não custar uma requisição no 4G. -->
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23001E62'/%3E%3Ccircle cx='32' cy='16' r='5' fill='%2300BBDC'/%3E%3Cpath d='M22 26h20M32 26v14M32 40h10M32 40l-8 10' stroke='%2300BBDC' stroke-width='4.5' stroke-linecap='round' fill='none'/%3E%3C/svg%3E" />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700&family=Inter:wght@400;500;600;700&display=swap" />
+</head>
+<body>
+  <!-- O primeiro item tabulável da página. Some do fluxo visual até receber
+       foco; sem ele, quem navega por teclado atravessa o cabeçalho inteiro
+       em toda troca de tela. -->
+  <a class="pular-para-conteudo" href="#conteudo">Pular para o conteúdo</a>
+
+  <div id="raiz"></div>
+
+  <!-- VLibras: tradução para Libras, mantida pelo Governo Federal. Num jogo
+       sobre inclusão de PcD, a ausência dela seria contraditória. Carrega
+       depois do app (defer) e falha em silêncio se o serviço estiver fora. -->
+  <div vw class="enabled">
+    <div vw-access-button class="active"></div>
+    <div vw-plugin-wrapper><div class="vw-plugin-top-wrapper"></div></div>
+  </div>
+  <script defer src="https://vlibras.gov.br/app/vlibras-plugin.js"></script>
+  <script defer>
+    window.addEventListener('load', function () {
+      try { new window.VLibras.Widget('https://vlibras.gov.br/app') } catch (e) { /* serviço fora do ar: segue sem */ }
+    })
+  </script>
+
+  <script type="module" src="/src/main.tsx"></script>
+</body>
+</html>

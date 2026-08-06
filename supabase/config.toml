@@ -1,0 +1,12 @@
+# Configuração do projeto para a CLI do Supabase.
+#
+# `verify_jwt = false` nas duas funções porque a autenticação deste jogo não é
+# o GoTrue: quem entra ainda não tem JWT nenhum, e quem já entrou apresenta o
+# token opaco no cabeçalho `x-sessao`, conferido dentro da própria função.
+project_id = "diversidade-em-acao"
+
+[functions.entrar]
+verify_jwt = false
+
+[functions.jogar]
+verify_jwt = false

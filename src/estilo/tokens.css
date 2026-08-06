@@ -1,0 +1,156 @@
+/* ==========================================================================
+   Diversidade em Ação — tokens
+
+   Herdados do DOME GAMES (app/css/01-tokens.css), que por sua vez herdou do
+   DOME CRM: mesmos nomes, mesmos valores, para que os apps sejam reconhecíveis
+   como a mesma família. Paleta do Manual de Identidade (navy 2758C, ciano
+   2199C, Cool Gray 4C).
+
+   Regra de marca mantida: "cor vibrante só no jogo". A casca é navy/ciano/
+   cinza; bronze, prata, ouro e platina só aparecem em medalhas e no
+   certificado — nunca em navegação ou cabeçalho.
+
+   Dois eixos de acessibilidade vivem aqui, e é de propósito: quem muda o
+   tamanho da fonte ou liga o alto contraste mexe em variável, não em regra.
+   Nenhum componente precisa saber que esses modos existem.
+   ========================================================================== */
+
+:root {
+  /* marca */
+  --dome-navy: #001e62;
+  --dome-blue: #004aa1;
+  --dome-cyan: #00bbdc;
+  --dome-sky: #83d2e4;
+  --dome-navy-800: #0a2a72;
+  --dome-cyan-050: #e9f9fc;
+  --dome-cyan-800: #0a5468;
+  --dome-sky-050: #f1f9fc;
+
+  /* texto */
+  --ink: #141f3c;
+  --ink-2: #3d4a68;
+  --ink-3: #5a6785;
+
+  /* superfícies */
+  --bg: #f5f8fb;
+  --surface: #fff;
+  --surface-2: #eef3f9;
+  --linha: #dfe6f0;
+
+  /* estados */
+  --ok: #1e8e5a;
+  --ok-bg: #e3f3eb;
+  --alerta: #c23b22;
+  --alerta-bg: #fbe7e3;
+  --morno: #b8791a;
+  --morno-bg: #fbf1e0;
+  --neutro: #8a94a6;
+  --neutro-bg: #eef1f5;
+
+  /* medalhas — só aqui e no certificado */
+  --m-bronze: #b87333;
+  --m-prata: #9aa7b8;
+  --m-ouro: #e8b33c;
+  --m-platina: #7fd8e8;
+
+  /* forma */
+  --raio: 14px;
+  --raio-s: 10px;
+  --raio-g: 20px;
+  --sombra: 0 0 0 1px rgba(0, 30, 98, 0.05), 0 6px 24px rgba(30, 27, 46, 0.08);
+  --sombra-alta: 0 0 0 1px rgba(0, 30, 98, 0.05), 0 8px 20px -6px rgba(0, 30, 98, 0.1),
+    0 28px 60px -18px rgba(0, 30, 98, 0.16);
+
+  /* movimento */
+  --ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --t-fast: 180ms;
+  --t-med: 300ms;
+
+  /* tipografia */
+  --fonte-display: 'Sora', system-ui, sans-serif;
+  --fonte-ui: 'Inter', system-ui, -apple-system, sans-serif;
+
+  /* Escala de fonte. A barra de acessibilidade mexe SÓ nesta variável; todo o
+     resto do app usa rem, então o app inteiro cresce junto e nada quebra. */
+  --escala: 1;
+  font-size: calc(16px * var(--escala));
+
+  /* espaçamento */
+  --gap: 1rem;
+  --pad-tela: clamp(1rem, 0.5rem + 2vw, 2rem);
+  --largura-max: 68rem;
+
+  /* Alvo mínimo de toque. 44px é o piso do WCAG 2.5.5; aqui é 48 porque o
+     alvo real é uma mão só, no celular, às vezes com o braço ocupado. */
+  --alvo: 3rem;
+}
+
+/* --------------------------------------------------------------------------
+   ALTO CONTRASTE
+
+   Não é "tema escuro": é a mesma estrutura com contraste empurrado bem acima
+   do mínimo AA. Ciano puro sobre navy passa de 8:1. Mantém as medalhas
+   distinguíveis entre si — trocar tudo por preto e branco tiraria a única
+   informação que a cor carrega no app.
+   -------------------------------------------------------------------------- */
+:root[data-contraste='alto'] {
+  --bg: #00122e;
+  --surface: #001e40;
+  --surface-2: #00294f;
+  --linha: #4d7fb3;
+  --ink: #ffffff;
+  --ink-2: #d6e6f5;
+  --ink-3: #b9d2ea;
+  --dome-navy: #ffffff;
+  --dome-blue: #7fd8e8;
+  --dome-cyan: #4fe3ff;
+  --dome-cyan-050: #002f4d;
+  --dome-cyan-800: #cdf3fb;
+  --dome-sky-050: #002f4d;
+  --ok: #5ee5a0;
+  --ok-bg: #00351f;
+  --alerta: #ff9d8a;
+  --alerta-bg: #3d0f07;
+  --morno: #ffcd6b;
+  --morno-bg: #3a2705;
+  --neutro: #c3cede;
+  --neutro-bg: #002a4e;
+  --sombra: 0 0 0 1px #4d7fb3;
+  --sombra-alta: 0 0 0 2px #4d7fb3;
+}
+
+/* --------------------------------------------------------------------------
+   MOVIMENTO DESLIGADO
+
+   Duas portas para o mesmo lugar: a preferência do sistema e o botão da barra
+   de acessibilidade. Quem tem o sistema configurado não precisa apertar nada;
+   quem não sabe que a configuração existe tem um botão.
+   -------------------------------------------------------------------------- */
+@media (prefers-reduced-motion: reduce) {
+  :root:not([data-movimento='sim']) {
+    --t-fast: 0ms;
+    --t-med: 0ms;
+  }
+}
+:root[data-movimento='nao'] {
+  --t-fast: 0ms;
+  --t-med: 0ms;
+}
+:root[data-movimento='nao'] *,
+:root[data-movimento='nao'] *::before,
+:root[data-movimento='nao'] *::after {
+  animation-duration: 1ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 1ms !important;
+  scroll-behavior: auto !important;
+}
+@media (prefers-reduced-motion: reduce) {
+  :root:not([data-movimento='sim']) *,
+  :root:not([data-movimento='sim']) *::before,
+  :root:not([data-movimento='sim']) *::after {
+    animation-duration: 1ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 1ms !important;
+    scroll-behavior: auto !important;
+  }
+}

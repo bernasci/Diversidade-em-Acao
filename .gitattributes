@@ -1,0 +1,8 @@
+# O repositório guarda tudo em LF, mesmo sendo editado no Windows. Sem isto,
+# uma troca de máquina reescreve arquivo inteiro só por causa de fim de linha.
+* text=auto eol=lf
+
+# Binários, para o Git não tentar normalizar.
+*.png binary
+*.jpg binary
+*.ico binary
