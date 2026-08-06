@@ -71,6 +71,7 @@ export type CodigoErro =
   | 'sem-conexao'
   | 'muitas-tentativas'
   | 'dados-invalidos'
+  | 'nao-configurado'
   | 'desconhecido'
 
 export class ErroApi extends Error {

@@ -22,6 +22,14 @@ const ANON = import.meta.env.VITE_SUPABASE_ANON as string | undefined
 
 export const CONFIGURADO = Boolean(URL_BASE && ANON)
 
+/* Em desenvolvimento as variáveis vêm do `.env`; em produção, do painel da
+   Vercel. Mandar quem está vendo a tela publicada "preencher o .env" faz a
+   pessoa procurar um arquivo que não existe naquele contexto — por isso a
+   mensagem muda com o ambiente. */
+export const MENSAGEM_SEM_CONFIG = import.meta.env.DEV
+  ? 'O app ainda não foi conectado ao banco. Copie o .env.example para .env, preencha VITE_SUPABASE_URL e VITE_SUPABASE_ANON, e reinicie o servidor.'
+  : 'O app ainda não foi conectado ao banco. Configure VITE_SUPABASE_URL e VITE_SUPABASE_ANON nas variáveis de ambiente da Vercel e publique de novo.'
+
 const TEMPO_LIMITE = 15_000
 
 function cabecalhos(comSessao: boolean): HeadersInit {
@@ -39,7 +47,9 @@ function cabecalhos(comSessao: boolean): HeadersInit {
 
 async function chamar<T>(funcao: 'entrar' | 'jogar', corpo: unknown, comSessao = true): Promise<T> {
   if (!CONFIGURADO) {
-    throw new ErroApi('desconhecido', 'O app ainda não foi conectado ao banco. Preencha o arquivo .env.')
+    // Guarda de última instância. A tela de entrada já bloqueia o envio antes
+    // de chegar aqui — se esta linha disparar, é chamada de outro lugar.
+    throw new ErroApi('nao-configurado', MENSAGEM_SEM_CONFIG)
   }
 
   // AbortSignal.timeout é o que impede a tela de ficar em "carregando" para

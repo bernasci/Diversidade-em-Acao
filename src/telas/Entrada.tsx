@@ -11,18 +11,21 @@ import { useState, type FormEvent } from 'react'
 import { useEstado } from '../nucleo/estado'
 import { emailPlausivel } from '../nucleo/sessao'
 import { ErroApi } from '../nucleo/tipos'
-import { CONFIGURADO } from '../nucleo/api'
+import { CONFIGURADO, MENSAGEM_SEM_CONFIG } from '../nucleo/api'
 import { Erro } from '../componentes/comuns'
 import { MISSOES } from '../conteudo/missoes'
 
 export default function Entrada() {
   const { entrar } = useEstado()
   const [email, setEmail] = useState('')
-  const [erro, setErro] = useState<string | null>(null)
+  // Se o app subiu sem as variáveis do Supabase, o erro já nasce na tela: não
+  // adianta a pessoa digitar o e-mail para descobrir isso depois de enviar.
+  const [erro, setErro] = useState<string | null>(CONFIGURADO ? null : MENSAGEM_SEM_CONFIG)
   const [enviando, setEnviando] = useState(false)
 
   async function enviar(e: FormEvent) {
     e.preventDefault()
+    if (!CONFIGURADO) return
     setErro(null)
 
     if (!emailPlausivel(email)) {
@@ -78,16 +81,16 @@ export default function Entrada() {
           </span>
         </div>
 
+        {/* Um erro por vez. Antes, um app sem configuração mostrava dois avisos
+            empilhados: o do estado e o da checagem de ambiente, dizendo a mesma
+            coisa com palavras diferentes. */}
         {erro && <Erro>{erro}</Erro>}
 
-        {!CONFIGURADO && (
-          <Erro>
-            O app ainda não foi conectado ao banco. Copie o arquivo <code>.env.example</code> para{' '}
-            <code>.env</code> e preencha as duas variáveis do Supabase.
-          </Erro>
-        )}
-
-        <button className="botao botao--primario botao--largo" type="submit" disabled={enviando}>
+        <button
+          className="botao botao--primario botao--largo"
+          type="submit"
+          disabled={enviando || !CONFIGURADO}
+        >
           {enviando ? 'Verificando…' : 'Começar'}
         </button>
       </form>
