@@ -24,11 +24,13 @@ Feche e reabra o terminal depois.
 
 ```powershell
 npm install
-copy .env.example .env      # e preencha as duas variáveis do Supabase
 npm run dev                 # abre em http://localhost:5180
 ```
 
-Sem o `.env` preenchido, o app abre e mostra na tela de entrada que ainda não foi conectado ao banco.
+Funciona sem configuração: o app já aponta para o banco de produção
+([`src/nucleo/projeto.ts`](src/nucleo/projeto.ts)). Só crie um `.env` para usar as **ferramentas de
+linha de comando** (`importar`, `fumaca`), que precisam da service_role key, ou para apontar o app a
+outro banco — veja [`.env.example`](.env.example).
 
 | Comando | O que faz |
 | --- | --- |
@@ -88,7 +90,11 @@ npx vercel            # primeira vez
 npx vercel --prod
 ```
 
-Configure as variáveis `VITE_SUPABASE_URL` e `VITE_SUPABASE_ANON` no painel do projeto na Vercel.
+**Não é preciso configurar variável de ambiente nenhuma.** A URL e a anon key do projeto vivem em
+[`src/nucleo/projeto.ts`](src/nucleo/projeto.ts) — as duas são públicas por construção e iriam para
+dentro do bundle de qualquer forma, já que variável `VITE_*` é substituída no momento do build. O
+`.env` continua funcionando e tem prioridade, para apontar o app a um banco de homologação.
+
 O `vercel.json` já traz o rewrite de SPA e os cabeçalhos de segurança.
 
 O front **precisa** ficar na Vercel, e não no Supabase: assim HTML, CSS e JS não consomem o egress de

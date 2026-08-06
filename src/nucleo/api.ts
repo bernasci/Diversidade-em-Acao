@@ -16,27 +16,30 @@
 
 import { ErroApi, type CodigoErro, type EstadoServidor, type LinhaRanking, type RespostaCredito, type RespostaEntrar, type RespostaQuiz, type IdMissao } from './tipos'
 import { lerToken } from './sessao'
+import { SUPABASE_ANON_PADRAO, SUPABASE_URL_PADRAO } from './projeto'
 
-const URL_BASE = import.meta.env.VITE_SUPABASE_URL as string | undefined
-const ANON = import.meta.env.VITE_SUPABASE_ANON as string | undefined
+/* O `.env` vence os valores de `projeto.ts`. Assim o app funciona ao clonar e
+   ao publicar, sem configuração nenhuma, e ainda dá para apontar para um
+   banco de homologação sem tocar no código. */
+const URL_BASE = (import.meta.env.VITE_SUPABASE_URL || SUPABASE_URL_PADRAO) as string
+const ANON = (import.meta.env.VITE_SUPABASE_ANON || SUPABASE_ANON_PADRAO) as string
 
 export const CONFIGURADO = Boolean(URL_BASE && ANON)
 
-/* Em desenvolvimento as variáveis vêm do `.env`; em produção, do painel da
-   Vercel. Mandar quem está vendo a tela publicada "preencher o .env" faz a
-   pessoa procurar um arquivo que não existe naquele contexto — por isso a
-   mensagem muda com o ambiente. */
+/* Só aparece se alguém esvaziar os valores de `projeto.ts` — o que é um jeito
+   legítimo de forçar a configuração por ambiente, então a mensagem explica os
+   dois caminhos. */
 export const MENSAGEM_SEM_CONFIG = import.meta.env.DEV
-  ? 'O app ainda não foi conectado ao banco. Copie o .env.example para .env, preencha VITE_SUPABASE_URL e VITE_SUPABASE_ANON, e reinicie o servidor.'
-  : 'O app ainda não foi conectado ao banco. Configure VITE_SUPABASE_URL e VITE_SUPABASE_ANON nas variáveis de ambiente da Vercel e publique de novo.'
+  ? 'O app não está conectado a nenhum banco. Preencha src/nucleo/projeto.ts ou defina VITE_SUPABASE_URL e VITE_SUPABASE_ANON no .env, e reinicie o servidor.'
+  : 'O app não está conectado a nenhum banco. Preencha src/nucleo/projeto.ts ou defina VITE_SUPABASE_URL e VITE_SUPABASE_ANON nas variáveis de ambiente, e publique de novo.'
 
 const TEMPO_LIMITE = 15_000
 
 function cabecalhos(comSessao: boolean): HeadersInit {
   const h: Record<string, string> = {
     'content-type': 'application/json',
-    apikey: ANON ?? '',
-    authorization: `Bearer ${ANON ?? ''}`,
+    apikey: ANON,
+    authorization: `Bearer ${ANON}`,
   }
   if (comSessao) {
     const t = lerToken()
@@ -132,7 +135,7 @@ export async function buscarRanking(limite = 100): Promise<LinhaRanking[]> {
   const url = `${URL_BASE}/rest/v1/ranking_publico?select=posicao,apelido,area,pts&order=posicao.asc&limit=${limite}`
   try {
     const r = await fetch(url, {
-      headers: { apikey: ANON!, authorization: `Bearer ${ANON!}` },
+      headers: { apikey: ANON, authorization: `Bearer ${ANON}` },
       signal: AbortSignal.timeout(TEMPO_LIMITE),
     })
     if (!r.ok) return []
