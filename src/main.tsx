@@ -2,7 +2,6 @@ import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import { BrowserRouter } from 'react-router-dom'
 import App from './App'
-import { ProvedorAcessibilidade } from './nucleo/acessibilidade'
 import { ProvedorAvisos } from './componentes/avisos'
 import { ProvedorEstado } from './nucleo/estado'
 
@@ -16,14 +15,12 @@ if (!raiz) throw new Error('Elemento #raiz não encontrado no index.html')
 
 createRoot(raiz).render(
   <StrictMode>
-    <ProvedorAcessibilidade>
-      <ProvedorAvisos>
-        <ProvedorEstado>
-          <BrowserRouter>
-            <App />
-          </BrowserRouter>
-        </ProvedorEstado>
-      </ProvedorAvisos>
-    </ProvedorAcessibilidade>
+    <ProvedorAvisos>
+      <ProvedorEstado>
+        <BrowserRouter>
+          <App />
+        </BrowserRouter>
+      </ProvedorEstado>
+    </ProvedorAvisos>
   </StrictMode>,
 )

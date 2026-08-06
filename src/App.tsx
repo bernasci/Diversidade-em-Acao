@@ -18,7 +18,6 @@
 import { useEffect, useRef } from 'react'
 import { NavLink, Navigate, Route, Routes, useLocation } from 'react-router-dom'
 import { Award, Map, Trophy, User } from 'lucide-react'
-import { BotaoAcessibilidade } from './nucleo/acessibilidade'
 import { useEstado } from './nucleo/estado'
 import { Carregando } from './componentes/comuns'
 import { PTS_MAX } from './conteudo/missoes'
@@ -44,6 +43,35 @@ const TITULOS: Record<string, string> = {
   '/ranking': 'Ranking',
   '/certificado': 'Certificado',
   '/perfil': 'Perfil',
+}
+
+/* --------------------------------------------------------------------------
+   ALTO CONTRASTE, VINDO DO SISTEMA
+
+   O app tinha um painel próprio com botões de contraste, tamanho de texto e
+   animação. Saiu, e a capacidade ficou — ligada onde ela realmente pertence:
+
+   - Tamanho do texto: a raiz voltou a `font-size: 100%`, então o ajuste do
+     navegador e do sistema volta a funcionar. Antes, a raiz em px o anulava.
+   - Movimento: `prefers-reduced-motion`, direto no CSS.
+   - Contraste: este efeito espelha `prefers-contrast: more` no atributo
+     `data-contraste`, que é o gatilho do tema de alto contraste nos tokens.
+
+   Quem precisa disso liga uma vez no Windows ou no iPhone e vale em tudo —
+   em vez de procurar um menu escondido dentro de cada site.
+   -------------------------------------------------------------------------- */
+function ContrasteDoSistema() {
+  useEffect(() => {
+    const consulta = window.matchMedia('(prefers-contrast: more)')
+    const aplicar = () => {
+      if (consulta.matches) document.documentElement.setAttribute('data-contraste', 'alto')
+      else document.documentElement.removeAttribute('data-contraste')
+    }
+    aplicar()
+    consulta.addEventListener('change', aplicar)
+    return () => consulta.removeEventListener('change', aplicar)
+  }, [])
+  return null
 }
 
 function FocoNaTela() {
@@ -79,6 +107,7 @@ export default function App() {
   return (
     <div className="app">
       <FocoNaTela />
+      <ContrasteDoSistema />
 
       {/* Na entrada o cabeçalho vira só uma faixa da própria cena: a marca já
           aparece grande no palco, e repeti-la duas vezes na mesma tela é a
@@ -107,7 +136,6 @@ export default function App() {
               <span className="so-leitor">de {PTS_MAX} pontos</span>
             </span>
           )}
-          <BotaoAcessibilidade />
         </div>
       </header>
 

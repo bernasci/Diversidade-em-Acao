@@ -222,37 +222,6 @@ a:hover {
   border: 1px solid var(--linha);
 }
 
-/* Botão redondo do cabeçalho (acessibilidade). Ícone só, com nome acessível
-   no `aria-label` — é o único lugar do app onde ícone anda sem rótulo, e
-   cabe porque o alvo é grande e o conteúdo é secundário. */
-.botao-icone {
-  display: grid;
-  place-items: center;
-  width: 2.5rem;
-  height: 2.5rem;
-  flex: none;
-  border: 1px solid rgba(255, 255, 255, 0.28);
-  border-radius: var(--r-full);
-  background: rgba(255, 255, 255, 0.1);
-  color: #fff;
-  font-size: var(--t-md);
-  line-height: 1;
-  cursor: pointer;
-  transition: background var(--rapido) var(--ease);
-}
-.botao-icone:hover {
-  background: rgba(255, 255, 255, 0.22);
-}
-.botao-icone[aria-expanded='true'] {
-  background: #fff;
-  color: var(--navy);
-}
-:root[data-contraste='alto'] .botao-icone {
-  border-color: var(--linha);
-  background: var(--superficie-2);
-  color: var(--ink);
-}
-
 .conteudo {
   flex: 1;
   width: 100%;
@@ -351,12 +320,9 @@ a:hover {
   }
 }
 @media (prefers-reduced-motion: reduce) {
-  :root:not([data-movimento='sim']) .nav {
+  .nav {
     animation: none;
   }
-}
-:root[data-movimento='nao'] .nav {
-  animation: none;
 }
 
 .nav__item {

@@ -160,7 +160,10 @@ sozinho. Por isso, e não como polimento final:
   "seleciono, depois escolho o destino" — o drag é uma camada opcional por cima.
 - **O jogo cronometrado (M4) pergunta antes se você quer cronômetro**, com o mesmo peso visual das
   duas opções, e as duas valem os mesmos pontos (WCAG 2.2.1).
-- Barra fixa no topo para **tamanho do texto, alto contraste e desligar animações**.
+- **Tamanho do texto, contraste e movimento vêm do sistema, não de um menu nosso.** A raiz usa
+  `font-size: 100%`, então o ajuste de texto do navegador e do aparelho funciona; `prefers-contrast:
+  more` liga o tema de alto contraste; `prefers-reduced-motion` desliga animação e confete. Quem
+  precisa disso já configurou no aparelho — e assim vale em todo o app sem ninguém procurar nada.
 - **VLibras** embutido, foco visível, `aria-live` nos resultados, foco movido para o conteúdo a cada
   troca de tela, e nenhum estado comunicado só por cor.
 - O certificado é `<canvas>`, então o mesmo conteúdo aparece logo abaixo em texto real.

@@ -134,10 +134,15 @@
      mão só, em pé, às vezes com luva. */
   --alvo: 3rem;
 
-  /* Escala de texto do painel de acessibilidade. Só esta variável muda; o
-     app inteiro é em rem, então cresce junto sem nada quebrar. */
-  --escala: 1;
-  font-size: calc(16px * var(--escala));
+  /* 100%, e NÃO um valor em px.
+     Aqui havia `font-size: calc(16px * var(--escala))`, controlado por um
+     painel próprio de acessibilidade. Era um tiro no pé: fixar a raiz em px
+     ANULA a configuração de tamanho de texto do navegador e do sistema — a
+     que quem precisa de fonte grande já tem ligada em todos os aplicativos.
+     O app oferecia um controle porque ele mesmo tinha quebrado o nativo.
+     Com 100%, o ajuste do sistema volta a funcionar e vale em toda a
+     interface, porque tudo aqui é medido em rem. */
+  font-size: 100%;
 }
 
 /* --------------------------------------------------------------------------
@@ -147,6 +152,11 @@
    empurrado bem acima do mínimo AA, para tela suja e sol direto. As medalhas
    continuam distinguíveis entre si — trocar tudo por preto e branco apagaria
    a única informação que a cor carrega no app.
+
+   O atributo `data-contraste` não vem mais de um botão nosso: `App.tsx`
+   espelha nele a preferência `prefers-contrast: more` do sistema. Quem liga
+   alto contraste no Windows ou no iOS liga uma vez e vale para tudo — não
+   precisa descobrir um menu dentro de cada site.
    -------------------------------------------------------------------------- */
 :root[data-contraste='alto'] {
   --bg: #00102a;
@@ -185,33 +195,20 @@
 /* --------------------------------------------------------------------------
    MOVIMENTO DESLIGADO
 
-   Duas portas para o mesmo lugar: a preferência do sistema, para quem já a
-   configurou, e um botão, para quem não sabe que ela existe.
+   Uma porta só, e é a certa: a preferência do sistema. Quem tem vertigem ou
+   enxaqueca vestibular liga isso no aparelho e espera que valha em tudo.
    -------------------------------------------------------------------------- */
 @media (prefers-reduced-motion: reduce) {
-  :root:not([data-movimento='sim']) {
+  :root {
     --rapido: 0ms;
     --medio: 0ms;
   }
-  :root:not([data-movimento='sim']) *,
-  :root:not([data-movimento='sim']) *::before,
-  :root:not([data-movimento='sim']) *::after {
+  *,
+  *::before,
+  *::after {
     animation-duration: 1ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 1ms !important;
     scroll-behavior: auto !important;
   }
-}
-
-:root[data-movimento='nao'] {
-  --rapido: 0ms;
-  --medio: 0ms;
-}
-:root[data-movimento='nao'] *,
-:root[data-movimento='nao'] *::before,
-:root[data-movimento='nao'] *::after {
-  animation-duration: 1ms !important;
-  animation-iteration-count: 1 !important;
-  transition-duration: 1ms !important;
-  scroll-behavior: auto !important;
 }

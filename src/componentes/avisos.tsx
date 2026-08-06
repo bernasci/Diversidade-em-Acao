@@ -1,11 +1,8 @@
 /* ==========================================================================
    avisos.tsx — toast e confete.
 
-   O confete só aparece em conclusão de missão, medalha e fim da jornada. É a
-   regra de marca do DOME GAMES que vale aqui também: se tudo comemora, nada
-   comemora. E ele respeita `prefers-reduced-motion` — na prática, se o
-   movimento estiver desligado, o confete simplesmente não é criado, em vez de
-   ser criado e escondido.
+   O confete só aparece em conclusão de missão, medalha e fim da jornada: se
+   tudo comemora, nada comemora.
    ========================================================================== */
 
 import { createContext, useCallback, useContext, useMemo, useRef, useState, type ReactNode } from 'react'
@@ -26,12 +23,10 @@ const Ctx = createContext<Contexto | null>(null)
 
 const CORES = ['#00BBDC', '#004AA1', '#E8B33C', '#83D2E4', '#1E8E5A']
 
-function movimentoLigado(): boolean {
-  const attr = document.documentElement.getAttribute('data-movimento')
-  if (attr === 'nao') return false
-  if (attr === 'sim') return true
-  return !window.matchMedia('(prefers-reduced-motion: reduce)').matches
-}
+/* O confete é o único elemento do app que se move sozinho, então ele respeita
+   a preferência do sistema não escondendo a animação, mas não a criando. */
+const movimentoLigado = (): boolean =>
+  !window.matchMedia('(prefers-reduced-motion: reduce)').matches
 
 export function ProvedorAvisos({ children }: { children: ReactNode }) {
   const [avisos, setAvisos] = useState<Aviso[]>([])
