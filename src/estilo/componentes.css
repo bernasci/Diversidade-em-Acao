@@ -173,20 +173,159 @@
     padding: var(--e-5);
   }
 }
+/* -------------------------------------------------------------------- PALCO
+   A cena escura de tela cheia da entrada.
+
+   Emprestada do "Painel de Projetos" (teste-login.html, variante B — "cena
+   escura cheia"), com os valores dele e não estimados a olho: gradiente de
+   168°, malha de 46px a 5,5% de branco com máscara radial que a apaga nas
+   bordas, e um brilho ciano difuso vindo de baixo. É o que faz a tela
+   parecer um produto da DOME em vez de um formulário genérico — e os dois
+   apps passam a se reconhecer no primeiro segundo.
+
+   A malha e o brilho são pseudo-elementos: zero markup, e some junto se
+   alguém remover a classe.
+   -------------------------------------------------------------------------- */
+.palco {
+  position: relative;
+  overflow: hidden;
+  display: grid;
+  place-items: center;
+  padding: var(--e-7) var(--e-4);
+  background: linear-gradient(168deg, var(--navy) 0%, #062b76 62%, #04205c 100%);
+}
+.palco::before {
+  content: '';
+  position: absolute;
+  inset: -2px;
+  pointer-events: none;
+  opacity: 0.5;
+  background:
+    linear-gradient(rgba(255, 255, 255, 0.055) 1px, transparent 1px) 0 0 / 100% 46px,
+    linear-gradient(90deg, rgba(255, 255, 255, 0.055) 1px, transparent 1px) 0 0 / 46px 100%;
+  mask-image: radial-gradient(120% 100% at 50% 0%, #000 30%, transparent 80%);
+}
+.palco::after {
+  content: '';
+  position: absolute;
+  width: 48rem;
+  height: 48rem;
+  bottom: -26rem;
+  left: 50%;
+  margin-left: -24rem;
+  border-radius: 50%;
+  pointer-events: none;
+  background: radial-gradient(circle, rgba(0, 187, 220, 0.3), transparent 62%);
+  filter: blur(40px);
+}
+:root[data-contraste='alto'] .palco {
+  background: var(--bg);
+}
+:root[data-contraste='alto'] .palco::before,
+:root[data-contraste='alto'] .palco::after {
+  display: none;
+}
+
+/* A largura mora aqui, não no cartão: porcentagem contra um pai sem medida
+   definida é o jeito clássico de o campo sair com metade do tamanho e
+   truncar o placeholder. */
+.palco__pilha {
+  position: relative;
+  z-index: var(--z-base);
+  display: grid;
+  gap: var(--e-5);
+  width: min(26rem, 100%);
+  text-align: center;
+}
+.palco__titulo {
+  color: #fff;
+  font-size: var(--t-xl);
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  line-height: 1.15;
+}
+:root[data-contraste='alto'] .palco__titulo {
+  color: var(--ink);
+}
+.palco__sub {
+  color: rgba(207, 230, 242, 0.82);
+  font-size: var(--t-sm);
+}
+:root[data-contraste='alto'] .palco__sub {
+  color: var(--ink-2);
+}
+.palco__cartao {
+  background: var(--superficie);
+  border-radius: var(--r-lg);
+  padding: var(--e-5);
+  text-align: left;
+  box-shadow: 0 30px 70px -20px rgba(0, 10, 40, 0.55);
+}
+:root[data-contraste='alto'] .palco__cartao {
+  outline: 2px solid var(--linha);
+}
+/* Rótulo em caixa alta e espaçado, como no Painel: dentro de um cartão
+   claro sobre cena escura, ele vira estrutura em vez de texto. */
+.palco__cartao .campo label {
+  font-size: var(--t-xs);
+  font-weight: 700;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+.palco__pe {
+  color: rgba(207, 230, 242, 0.72);
+  font-size: var(--t-xs);
+}
+.palco__pe strong {
+  color: #fff;
+}
+:root[data-contraste='alto'] .palco__pe,
+:root[data-contraste='alto'] .palco__pe strong {
+  color: var(--ink-2);
+}
+
+/* Conteúdo que vem depois do palco, já fora da cena. */
+.faixa {
+  width: 100%;
+  max-width: var(--largura);
+  margin-inline: auto;
+  padding: var(--e-6) var(--e-4) var(--e-7);
+}
+
 /* -------------------------------------------------------------------- HERÓI
    O bloco de cor cheia no topo da tela. É ele que faz a diferença entre
    "sistema interno" e "jogo": navy ocupando um terço da primeira tela, com o
    progresso e a próxima ação dentro. A energia mora aqui, e o resto da tela
    fica calmo — se tudo gritasse, nada gritaria. */
 .heroi {
+  position: relative;
+  overflow: hidden;
   display: flex;
   flex-direction: column;
   gap: var(--e-4);
   padding: var(--e-6) var(--e-5);
   border-radius: var(--r-xl);
-  background: var(--navy);
+  /* O mesmo gradiente do palco da entrada: quem passa do login para o jogo
+     continua na mesma cena, em vez de trocar de produto na primeira tela. */
+  background: linear-gradient(168deg, var(--navy) 0%, #062b76 62%, #04205c 100%);
   color: #fff;
   box-shadow: var(--sombra-lg);
+}
+.heroi::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.45;
+  background:
+    linear-gradient(rgba(255, 255, 255, 0.055) 1px, transparent 1px) 0 0 / 100% 46px,
+    linear-gradient(90deg, rgba(255, 255, 255, 0.055) 1px, transparent 1px) 0 0 / 46px 100%;
+  mask-image: radial-gradient(120% 100% at 50% 0%, #000 30%, transparent 85%);
+}
+.heroi > * {
+  position: relative;
+  z-index: var(--z-base);
 }
 .heroi h1 {
   color: #fff;

@@ -157,6 +157,18 @@ a:hover {
   color: var(--ink);
 }
 
+/* Na entrada o cabeçalho é a primeira faixa da cena: mesma cor do topo do
+   gradiente, sem marca (ela já está grande logo abaixo) e sem separação. */
+.cabecalho--palco {
+  background: var(--navy);
+}
+.cabecalho--palco .marca {
+  visibility: hidden;
+}
+:root[data-contraste='alto'] .cabecalho--palco .marca {
+  visibility: visible;
+}
+
 .marca {
   display: flex;
   align-items: center;
@@ -252,6 +264,10 @@ a:hover {
 }
 .conteudo--largo {
   max-width: var(--largura-larga);
+}
+.conteudo--palco {
+  max-width: none;
+  padding: 0;
 }
 .conteudo:focus {
   outline: none;

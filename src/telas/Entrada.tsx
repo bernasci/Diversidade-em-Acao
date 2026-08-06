@@ -1,14 +1,15 @@
 /* ==========================================================================
    Entrada.tsx — a porta.
 
-   Um campo só: o e-mail corporativo. Sem senha para esquecer, sem link para
-   esperar na caixa de entrada, sem código para digitar. Quem está na lista do
-   RH entra; quem não está recebe uma frase que diz o que fazer — "fale com o
-   RH" — e nunca "e-mail inválido", que faz a pessoa achar que digitou errado.
+   A composição vem do "Painel de Projetos" (variante "cena escura cheia"):
+   cena DOME ocupando a tela toda, marca e título centrados, e o formulário
+   flutuando num cartão branco. Os dois apps passam a se reconhecer no
+   primeiro segundo, e a entrada deixa de parecer um formulário genérico.
 
-   O formulário vem PRIMEIRO, antes da explicação do que é o jogo. Quem já
-   sabe do que se trata (todo mundo, depois do e-mail do RH) não deveria
-   rolar a tela para achar o campo.
+   Um campo só: o e-mail corporativo. Sem senha para esquecer, sem link para
+   esperar na caixa de entrada. Quem está na lista do RH entra; quem não está
+   recebe uma frase que diz o que fazer — "fale com o RH" — e nunca "e-mail
+   inválido", que faz a pessoa achar que digitou errado.
    ========================================================================== */
 
 import { useState, type FormEvent } from 'react'
@@ -50,52 +51,75 @@ export default function Entrada() {
   }
 
   return (
-    <div className="pilha-g">
-      <div className="heroi">
-        <h1>Diversidade em Ação</h1>
-        <p>
-          Cinco missões sobre a inclusão de Pessoas com Deficiência no mundo do trabalho. Cada uma tem
-          um jogo e um quiz, e leva cerca de dez minutos.
-        </p>
-      </div>
+    <>
+      <section className="palco">
+        <div className="palco__pilha">
+          <div className="pilha-2">
+            <svg
+              width="44"
+              height="44"
+              viewBox="0 0 64 64"
+              aria-hidden="true"
+              style={{ margin: '0 auto' }}
+            >
+              <circle cx="32" cy="13" r="6" fill="#00BBDC" />
+              <path
+                d="M20 26h24M32 26v14M32 40h11M32 40l-9 11"
+                stroke="#00BBDC"
+                strokeWidth="5"
+                strokeLinecap="round"
+                fill="none"
+              />
+            </svg>
+            <h1 className="palco__titulo">Diversidade em Ação</h1>
+            <p className="palco__sub">
+              Cinco missões sobre a inclusão de Pessoas com Deficiência no mundo do trabalho.
+            </p>
+          </div>
 
-      <form className="painel pilha" onSubmit={enviar} noValidate>
-        <div className="campo">
-          <label htmlFor="email">E-mail corporativo</label>
-          <input
-            id="email"
-            name="email"
-            type="email"
-            inputMode="email"
-            autoComplete="email"
-            autoCapitalize="none"
-            spellCheck={false}
-            required
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            aria-describedby="ajuda-email"
-            aria-invalid={erro ? true : undefined}
-            disabled={enviando}
-            placeholder="nome.sobrenome@empresa.com.br"
-          />
-          <span className="campo__ajuda" id="ajuda-email">
-            Use o mesmo e-mail que você usa na empresa. Não precisa de senha.
-          </span>
+          <form className="palco__cartao pilha" onSubmit={enviar} noValidate>
+            <div className="campo">
+              <label htmlFor="email">E-mail corporativo</label>
+              <input
+                id="email"
+                name="email"
+                type="email"
+                inputMode="email"
+                autoComplete="email"
+                autoCapitalize="none"
+                spellCheck={false}
+                required
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                aria-describedby="ajuda-email"
+                aria-invalid={erro ? true : undefined}
+                disabled={enviando}
+                placeholder="nome.sobrenome@empresa.com.br"
+              />
+              <span className="campo__ajuda" id="ajuda-email">
+                Não precisa de senha. Só quem está na lista do RH consegue entrar.
+              </span>
+            </div>
+
+            {erro && <Erro>{erro}</Erro>}
+
+            <button
+              className="botao botao--primario botao--largo"
+              type="submit"
+              disabled={enviando || !CONFIGURADO}
+            >
+              {enviando ? 'Verificando…' : 'Entrar no jogo'}
+            </button>
+          </form>
+
+          <p className="palco__pe">
+            <strong>DOME</strong> Serviços Integrados · Diversidade &amp; Inclusão
+          </p>
         </div>
+      </section>
 
-        {erro && <Erro>{erro}</Erro>}
-
-        <button
-          className="botao botao--primario botao--largo"
-          type="submit"
-          disabled={enviando || !CONFIGURADO}
-        >
-          {enviando ? 'Verificando…' : 'Entrar'}
-        </button>
-      </form>
-
-      <section className="pilha-2" aria-labelledby="t-jornada">
-        <h2 id="t-jornada">O que você vai encontrar</h2>
+      <div className="faixa pilha">
+        <h2>O que você vai encontrar</h2>
         <ol className="trilha">
           {MISSOES.map((m, i) => (
             <li key={m.id} className="trilha__item">
@@ -110,10 +134,11 @@ export default function Entrada() {
           ))}
         </ol>
         <p className="meta">
-          O jogo funciona por teclado e leitor de tela, tem tradução em Libras e permite ajustar o
-          tamanho do texto e o contraste no botão ☰ do topo.
+          Cada missão tem um jogo e cinco perguntas, e leva cerca de dez minutos. O jogo funciona por
+          teclado e leitor de tela, tem tradução em Libras e permite ajustar o tamanho do texto e o
+          contraste no botão ☰ do topo.
         </p>
-      </section>
-    </div>
+      </div>
+    </>
   )
 }

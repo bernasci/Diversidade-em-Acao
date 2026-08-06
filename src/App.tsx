@@ -70,12 +70,17 @@ export default function App() {
   const { carregando, jogador } = useEstado()
   const { pathname } = useLocation()
   const largo = pathname === '/ranking'
+  const entrando = !jogador && !carregando
 
   return (
     <div className="app">
       <FocoNaTela />
 
-      <header className="cabecalho">
+      {/* Na entrada o cabeçalho vira só uma faixa da própria cena: a marca já
+          aparece grande no palco, e repeti-la duas vezes na mesma tela é a
+          diferença entre uma composição e um empilhamento. Sobra o botão de
+          acessibilidade, que precisa estar lá desde o login. */}
+      <header className={`cabecalho${entrando ? ' cabecalho--palco' : ''}`}>
         <span className="marca">
           <svg width="24" height="24" viewBox="0 0 64 64" aria-hidden="true">
             <circle cx="32" cy="13" r="6" fill="#00BBDC" />
@@ -114,8 +119,16 @@ export default function App() {
       )}
 
       {/* tabIndex={-1} existe só para receber o foco programático da troca de
-          rota; não entra na ordem de tabulação. */}
-      <main className={`conteudo${largo ? ' conteudo--largo' : ''}`} id="conteudo" tabIndex={-1}>
+          rota; não entra na ordem de tabulação.
+
+          A entrada abre mão da coluna centrada e do respiro: a cena escura
+          precisa sangrar até a borda da tela, e ela cuida do próprio
+          espaçamento por dentro. */}
+      <main
+        className={`conteudo${largo ? ' conteudo--largo' : ''}${entrando ? ' conteudo--palco' : ''}`}
+        id="conteudo"
+        tabIndex={-1}
+      >
         {carregando ? (
           <Carregando texto="Carregando sua jornada…" />
         ) : !jogador ? (
