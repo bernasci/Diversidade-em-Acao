@@ -26,7 +26,6 @@ import {
   missaoCompleta,
   missoesCompletas,
   percentual,
-  quizCompleto,
   respondidas,
 } from '../nucleo/progresso'
 import { Barra, GradeMedalhas, Selo } from '../componentes/comuns'
@@ -43,43 +42,44 @@ export default function Inicio() {
 
   return (
     <div className="pilha-g">
-      <section className="painel painel--destaque pilha" aria-labelledby="t-resumo">
-        <h1 id="t-resumo">{primeiroNome ? `Olá, ${primeiroNome}` : 'Sua jornada'}</h1>
+      <section className="heroi" aria-labelledby="t-resumo">
+        <div className="pilha-2">
+          <h1 id="t-resumo">{primeiroNome ? `Olá, ${primeiroNome}` : 'Sua jornada'}</h1>
+          <p>
+            {completas === 0 && 'Cinco missões, cerca de dez minutos cada. Comece por onde quiser.'}
+            {completas > 0 && faltam > 0 && (
+              <>
+                <strong>{completas}</strong> de <strong>{MISSOES.length}</strong> missões concluídas.
+                Faltam {faltam} para o certificado.
+              </>
+            )}
+            {faltam === 0 && 'Jornada completa. Seu certificado está pronto.'}
+          </p>
+        </div>
 
-        <p className="prosa">
-          {completas === 0 && (
-            <>
-              Cinco missões sobre a inclusão de Pessoas com Deficiência no trabalho. Cada uma tem um
-              jogo e cinco perguntas, e leva cerca de dez minutos.
-            </>
-          )}
-          {completas > 0 && faltam > 0 && (
-            <>
-              Você concluiu <strong>{completas}</strong> de <strong>{MISSOES.length}</strong> missões.
-              Faltam <strong>{faltam}</strong> para liberar o certificado.
-            </>
-          )}
-          {faltam === 0 && (
-            <>
-              Jornada completa. Seu certificado está pronto em <Link to="/certificado">Certificado</Link>.
-            </>
-          )}
-        </p>
+        <div className="heroi__pontos">
+          <b>{jogador.pts}</b>
+          <span className="meta">de {PTS_MAX} pontos · {pct}%</span>
+        </div>
 
         <Barra pct={pct} rotulo={`Progresso da jornada: ${pct} por cento`} />
-        <p className="meta">
-          {pct}% concluído · {jogador.pts} de {PTS_MAX} pontos
-        </p>
 
-        <GradeMedalhas atual={medalhaDe(progresso)} />
-
-        {proxima && (
-          <div className="acoes">
+        <div className="acoes">
+          {proxima ? (
             <Link className="botao botao--primario" to={`/missao/${proxima.id}`}>
-              {completas === 0 ? 'Começar a primeira missão' : 'Continuar de onde parei'}
+              {completas === 0 ? 'Começar a Missão 1 →' : 'Continuar de onde parei →'}
             </Link>
-          </div>
-        )}
+          ) : (
+            <Link className="botao botao--primario" to="/certificado">
+              Ver meu certificado →
+            </Link>
+          )}
+        </div>
+      </section>
+
+      <section className="pilha-2" aria-labelledby="t-medalhas">
+        <h2 id="t-medalhas">Medalhas</h2>
+        <GradeMedalhas atual={medalhaDe(progresso)} />
       </section>
 
       <section className="pilha" aria-labelledby="t-missoes">
@@ -88,25 +88,40 @@ export default function Inicio() {
         <ol className="trilha">
           {MISSOES.map((m, i) => {
             const completa = missaoCompleta(progresso, m.id)
+            const agora = !completa && proxima?.id === m.id
             const feitas = respondidas(progresso, m.id)
+            const estado = completa ? ' trilha__item--feito' : agora ? ' trilha__item--agora' : ''
 
             return (
-              <li key={m.id} className={`trilha__item${completa ? ' trilha__item--feito' : ''}`}>
+              <li key={m.id} className={`trilha__item${estado}`}>
                 <span className="trilha__num" aria-hidden="true">
                   {completa ? '✓' : i + 1}
                 </span>
 
                 <Link to={`/missao/${m.id}`} className="trilha__link">
+                  {agora && <span className="trilha__agora">AGORA</span>}
                   <span className="trilha__nome">{m.nome}</span>
                   <span className="trilha__tema">{m.tema}</span>
-                  <span className="trilha__linha">{m.tagline}</span>
+
+                  {/* A frase de chamada só aparece na missão da vez. Nas
+                      outras ela viraria cinco parágrafos numa lista que a
+                      pessoa está percorrendo com o polegar — e some a
+                      hierarquia que diz onde ela parou. */}
+                  {agora && <span className="trilha__linha">{m.tagline}</span>}
 
                   <span className="trilha__selos">
-                    <Selo estado={fezJogo(progresso, m.id) ? 'ok' : 'pendente'}>{m.jogoNome}</Selo>
-                    <Selo estado={quizCompleto(progresso, m.id) ? 'ok' : 'pendente'}>
-                      Quiz {feitas}/{PERGUNTAS_POR_MISSAO}
-                      {quizCompleto(progresso, m.id) && ` · ${acertos(progresso, m.id)} acertos`}
-                    </Selo>
+                    {completa ? (
+                      <Selo estado="ok">
+                        Concluída · {acertos(progresso, m.id)}/{PERGUNTAS_POR_MISSAO} acertos
+                      </Selo>
+                    ) : (
+                      <>
+                        <Selo estado={fezJogo(progresso, m.id) ? 'ok' : 'pendente'}>{m.jogoNome}</Selo>
+                        <Selo estado="pendente">
+                          Quiz {feitas}/{PERGUNTAS_POR_MISSAO}
+                        </Selo>
+                      </>
+                    )}
                   </span>
                 </Link>
               </li>

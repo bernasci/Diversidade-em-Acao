@@ -85,29 +85,31 @@ export default function TelaMissao() {
 
   return (
     <div className="pilha-g">
-      <div className="pilha-2">
-        <p className="meta">
-          <Link to="/">← Todas as missões</Link>
-        </p>
-        <p className="meta">
-          Missão {indice + 1} de {MISSOES.length} · {missao.tema}
-        </p>
-        <h1>{missao.nome}</h1>
-        <p className="prosa">{missao.tagline}</p>
+      <p className="meta">
+        <Link to="/">← Todas as missões</Link>
+      </p>
+
+      <header className="heroi">
+        <div className="pilha-2">
+          <p className="meta">
+            Missão {indice + 1} de {MISSOES.length} · {missao.tema}
+          </p>
+          <h1>{missao.nome}</h1>
+          <p>{missao.tagline}</p>
+        </div>
         <div className="linha">
           <Selo estado={jogoFeito ? 'ok' : 'pendente'}>{missao.jogoNome}</Selo>
           <Selo estado={quizFeito ? 'ok' : 'pendente'}>{PERGUNTAS_POR_MISSAO} perguntas</Selo>
         </div>
-      </div>
+      </header>
 
       {/* Navegável nas duas direções: quem quer reler o conteúdo no meio do
           quiz não deve perder o que já respondeu para isso. */}
-      <nav aria-label="Etapas da missão" className="acoes">
+      <nav aria-label="Etapas da missão" className="etapas">
         {etapas.map(([e, rotulo]) => (
           <button
             key={e}
             type="button"
-            className={`botao ${etapa === e ? 'botao--primario' : 'botao--secundario'}`}
             aria-current={etapa === e ? 'step' : undefined}
             onClick={() => setEtapa(e)}
           >
@@ -136,10 +138,13 @@ export default function TelaMissao() {
 
       {etapa === 'jogo' && (
         <section aria-labelledby="t-jogo" className="pilha">
-          <h2 id="t-jogo">{missao.jogoNome}</h2>
-          <p className="meta">
-            {missao.jogoComo} {jogoFeito ? '· já concluído' : `· vale ${PTS_JOGO} pontos`}
-          </p>
+          <div className="linha">
+            <h2 id="t-jogo">{missao.jogoNome}</h2>
+            <Selo estado={jogoFeito ? 'ok' : 'neutro'}>
+              {jogoFeito ? 'Concluído' : `Vale ${PTS_JOGO} pontos`}
+            </Selo>
+          </div>
+          <p className="meta">{missao.jogoComo}</p>
 
           <Suspense fallback={<Carregando texto="Preparando o jogo…" linhas={4} />}>
             <Jogo aoConcluir={aoConcluirJogo} jaFeito={jogoFeito} />

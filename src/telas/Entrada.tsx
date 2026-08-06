@@ -51,9 +51,9 @@ export default function Entrada() {
 
   return (
     <div className="pilha-g">
-      <div className="pilha-2">
+      <div className="heroi">
         <h1>Diversidade em Ação</h1>
-        <p className="prosa">
+        <p>
           Cinco missões sobre a inclusão de Pessoas com Deficiência no mundo do trabalho. Cada uma tem
           um jogo e um quiz, e leva cerca de dez minutos.
         </p>

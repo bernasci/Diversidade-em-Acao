@@ -30,36 +30,41 @@ export interface ParMemoria {
   definicao: string
 }
 
+/* As definições são CURTAS de propósito, teto de ~45 caracteres. Uma carta de
+   jogo da memória num celular tem cerca de 110px de largura: definição de
+   linha e meia vira parágrafo minúsculo, ilegível sob sol, e obriga o
+   tabuleiro a ocupar uma tela e meia de rolagem. Quem quiser a explicação
+   completa a encontra na etapa "Aprender" — a carta precisa caber. */
 export const PARES_MEMORIA: ParMemoria[] = [
   {
     id: 'modelo-social',
     conceito: 'Modelo social',
-    definicao: 'A deficiência nasce do encontro entre a condição e as barreiras do ambiente',
+    definicao: 'A barreira do ambiente é que gera a deficiência',
   },
   {
     id: 'lei-cotas',
     conceito: 'Lei de Cotas',
-    definicao: 'Lei 8.213/91: de 2% a 5% das vagas em empresas com 100+ empregados',
+    definicao: '2% a 5% das vagas em empresas com 100+',
   },
   {
     id: 'lbi',
     conceito: 'LBI',
-    definicao: 'Lei 13.146/2015, o Estatuto da Pessoa com Deficiência',
+    definicao: 'O Estatuto da Pessoa com Deficiência',
   },
   {
     id: 'adaptacao',
     conceito: 'Adaptação razoável',
-    definicao: 'O ajuste que coloca a pessoa em igualdade de condições no trabalho',
+    definicao: 'O ajuste que iguala as condições de trabalho',
   },
   {
     id: 'assistiva',
     conceito: 'Tecnologia assistiva',
-    definicao: 'Recurso que amplia a autonomia: leitor de tela, teclado adaptado, lupa',
+    definicao: 'Leitor de tela, teclado adaptado, lupa',
   },
   {
     id: 'reabilitado',
     conceito: 'Reabilitado do INSS',
-    definicao: 'Quem voltou ao trabalho após reabilitação e também conta na cota',
+    definicao: 'Voltou ao trabalho e também conta na cota',
   },
 ]
 
