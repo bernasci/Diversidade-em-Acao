@@ -15,7 +15,6 @@ export type TipoJogo = 'memoria' | 'ligar' | 'quebra' | 'mito' | 'cenario'
 export interface Missao {
   id: IdMissao
   ordem: string
-  ico: string
   nome: string
   tema: string
   tagline: string
@@ -31,14 +30,30 @@ export const PTS_ACERTO = 2
 export const PTS_BONUS = 20
 export const PERGUNTAS_POR_MISSAO = 5
 
+/* --------------------------------------------------------------------------
+   OS NOMES SÃO VERBOS, e isso é o sistema.
+
+   O jogo se chama "Diversidade em AÇÃO". Os cinco títulos são, todos,
+   infinitivo + objeto curto, e lidos em sequência formam uma frase só:
+
+       Entender o terreno · Chamar pelo nome certo · Derrubar barreiras ·
+       Enxergar o invisível · Abrir caminho
+
+   Antes eram cinco registros diferentes — metáfora de jornada, ação,
+   observação, metáfora espacial — e por isso não pareciam partes da mesma
+   coisa. O tema já estava na tela (a trilha, os nós, "A jornada"); faltava
+   nos nomes.
+
+   As taglines seguem uma forma só: contraste ou tríade curta, segunda
+   pessoa, sem eufemismo corporativo. Cada uma diz o que a missão desmonta.
+   -------------------------------------------------------------------------- */
 export const MISSOES: Missao[] = [
   {
     id: 'm1',
     ordem: 'Missão 01',
-    ico: '📘',
-    nome: 'O ponto de partida',
+    nome: 'Entender o terreno',
     tema: 'Conceitos e a Lei de Cotas',
-    tagline: 'O que é deficiência, o que diz a lei e por que isso não é caridade.',
+    tagline: 'O que a lei exige, o que ela proíbe e por que isso não é caridade.',
     aprender: [
       'Deficiência não é a característica da pessoa isolada: é o encontro entre uma condição de longo prazo e as barreiras do ambiente. É o chamado modelo social, adotado pela Convenção da ONU e pela lei brasileira.',
       'A Lei 8.213/91, a "Lei de Cotas", obriga empresas com 100 ou mais empregados a preencher de 2% a 5% das vagas com pessoas com deficiência ou reabilitadas do INSS. A faixa cresce com o tamanho da empresa.',
@@ -52,10 +67,9 @@ export const MISSOES: Missao[] = [
   {
     id: 'm2',
     ordem: 'Missão 02',
-    ico: '🗣️',
     nome: 'Chamar pelo nome certo',
     tema: 'Tipos de deficiência e comunicação respeitosa',
-    tagline: 'Os termos que respeitam, os que ferem e o que fazer na dúvida.',
+    tagline: 'A palavra que respeita, a que fere e o que fazer quando você não sabe.',
     aprender: [
       'O termo correto é "pessoa com deficiência" — pessoa primeiro, deficiência depois. "Portador", "deficiente", "especial" e "excepcional" saíram de uso: ninguém porta uma deficiência como quem porta um documento.',
       'As deficiências podem ser física, visual, auditiva, intelectual, psicossocial, múltipla — e o Transtorno do Espectro Autista tem, por lei, os mesmos direitos.',
@@ -70,10 +84,9 @@ export const MISSOES: Missao[] = [
   {
     id: 'm3',
     ordem: 'Missão 03',
-    ico: '🛠️',
     nome: 'Derrubar barreiras',
     tema: 'Acessibilidade e adaptações razoáveis',
-    tagline: 'Acessibilidade é bem mais do que rampa — e quase sempre custa pouco.',
+    tagline: 'A barreira que se vê, a que ninguém vê e a que custa quase nada.',
     aprender: [
       'A LBI lista seis tipos de barreira: arquitetônica (o degrau), atitudinal (o preconceito), comunicacional (a informação que não chega), tecnológica, metodológica (o jeito de fazer as coisas) e urbanística.',
       'A barreira atitudinal é a mais cara e a mais invisível: nenhuma rampa resolve um gestor que presume que a pessoa não dá conta.',
@@ -88,8 +101,7 @@ export const MISSOES: Missao[] = [
   {
     id: 'm4',
     ordem: 'Missão 04',
-    ico: '🪞',
-    nome: 'O que a gente nem percebe',
+    nome: 'Enxergar o invisível',
     tema: 'Capacitismo e vieses inconscientes',
     tagline: 'O elogio que diminui, a ajuda que atrapalha, a pergunta que não se faz.',
     aprender: [
@@ -106,8 +118,7 @@ export const MISSOES: Missao[] = [
   {
     id: 'm5',
     ordem: 'Missão 05',
-    ico: '🚀',
-    nome: 'Da porta para dentro',
+    nome: 'Abrir caminho',
     tema: 'Carreira, liderança e inclusão no dia a dia',
     tagline: 'Contratar é o começo. Ficar, crescer e ser promovido é o assunto.',
     aprender: [
