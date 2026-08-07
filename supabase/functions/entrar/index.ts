@@ -94,8 +94,14 @@ Deno.serve(async (req) => {
     .maybeSingle<Jogador>()
 
   if (!jogador) {
-    // Nome, área e empresa vêm da lista do RH e o jogador não os edita: é o
-    // que faz o ranking dizer a verdade sobre quem é quem.
+    /* Nome, área e empresa vêm da lista do RH e o jogador não os edita: é o
+       que faz o ranking dizer a verdade sobre quem é quem.
+
+       Se a lista vier sem nome ou sem empresa, o BANCO deduz do e-mail —
+       "daniel.alves@dome.services" vira "Daniel Alves · DOME". Quem faz isso
+       é o gatilho `completar_jogador` (006), e não este arquivo, para valer
+       também quando o RH corrige alguém direto no Table Editor. A ordem é
+       sempre a mesma: lista primeiro, dedução depois. */
     const { data: criado, error: erroCriar } = await sb
       .from('jogadores')
       .insert({

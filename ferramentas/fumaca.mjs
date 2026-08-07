@@ -33,6 +33,9 @@ const U = env.VITE_SUPABASE_URL
 const ANON = env.VITE_SUPABASE_ANON
 const SR = env.SUPABASE_SERVICE_ROLE_KEY
 const EMAIL = 'qa.descartavel@teste.local'
+/* Segundo QA, este SEM nome e SEM empresa na lista: serve para provar que o
+   banco deduz ambos do e-mail (migration 006). */
+const EMAIL_DEDUZIDO = 'daniel.alves.qa@teste.local'
 
 if (!U || !ANON || !SR) {
   console.error('Faltam VITE_SUPABASE_URL, VITE_SUPABASE_ANON ou SUPABASE_SERVICE_ROLE_KEY no .env.')
@@ -80,8 +83,10 @@ async function fn(nome, corpo, token) {
 }
 
 async function limpar() {
-  await rest(`jogadores?email=eq.${EMAIL}`, { method: 'DELETE' })
-  await rest(`elegiveis?email=eq.${EMAIL}`, { method: 'DELETE' })
+  for (const e of [EMAIL, EMAIL_DEDUZIDO]) {
+    await rest(`jogadores?email=eq.${e}`, { method: 'DELETE' })
+    await rest(`elegiveis?email=eq.${e}`, { method: 'DELETE' })
+  }
 }
 
 /* ------------------------------------------------------ portas fechadas -- */
@@ -100,9 +105,11 @@ await rest('elegiveis', {
   headers: { prefer: 'resolution=merge-duplicates,return=minimal' },
   body: JSON.stringify([
     { email: EMAIL, nome: 'Ana Descartavel de Testes', area: 'Testes', empresa: 'QA Ltda', matricula: '9999' },
+    // sem nome e sem empresa: o banco tem de deduzir os dois
+    { email: EMAIL_DEDUZIDO, area: 'Testes' },
   ]),
 })
-console.log('  elegível de QA criado')
+console.log('  elegíveis de QA criados')
 
 try {
   /* --------------------------------------------------------------- entrar -- */
@@ -119,6 +126,14 @@ try {
   ok(e.d?.jogador?.apelido === undefined, 'apelido NÃO chega mais ao app')
   ok(e.d?.jogador?.area === 'Testes', 'área veio da lista do RH')
   ok(e.d?.jogador?.empresa === 'QA Ltda', 'empresa veio da lista do RH')
+
+  /* A lista ganha da dedução: este e-mail viraria "Ana Descartavel Testes",
+     e não virou, porque a lista trouxe o nome com acento e tudo. */
+  const d = await fn('entrar', { email: EMAIL_DEDUZIDO })
+  ok(d.status === 200, 'entra sem nome na lista', String(d.status))
+  ok(d.d?.jogador?.nome === 'Daniel Alves Qa', 'nome DEDUZIDO do e-mail', d.d?.jogador?.nome)
+  ok(d.d?.jogador?.empresa === 'Teste', 'empresa DEDUZIDA do domínio', d.d?.jogador?.empresa)
+  ok(d.d?.jogador?.area === 'Testes', 'área continua vindo da lista')
   ok(Array.isArray(e.d?.progresso) && e.d.progresso.length === 0, 'progresso começa vazio')
   const T = e.d.token
 

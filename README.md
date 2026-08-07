@@ -54,7 +54,7 @@ Functions, nas migrations ou nas regras de pontuação.
    próxima e a que dá a menor latência para quem vai jogar).
 2. No **SQL Editor**, rode os arquivos de `supabase/migrations/` **nesta ordem**:
    `001_base.sql` → `002_gabarito.sql` → `003_seguranca.sql` → `004_ranking.sql` →
-   `005_nome_e_empresa.sql`.
+   `005_nome_e_empresa.sql` → `006_nome_e_empresa_do_email.sql`.
 3. Em **Database → Extensions**, ligue **pg_cron** e descomente o bloco `cron.schedule` no fim do
    `004_ranking.sql`. Sem isso o ranking ainda funciona, mas atualiza de forma oportunista.
 4. Publique as Edge Functions:

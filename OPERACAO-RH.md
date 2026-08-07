@@ -15,11 +15,24 @@ são flexíveis — não é preciso renomear nada:
 
 | Coluna | Nomes aceitos | Obrigatória |
 | --- | --- | --- |
-| E-mail | `email`, `e-mail`, `mail` | **sim** |
-| Nome | `nome`, `colaborador`, `nome completo` | recomendada |
-| Área | `area`, `área`, `setor`, `departamento`, `lotação` | recomendada |
-| Empresa | `empresa`, `organização`, `companhia`, `cliente` | recomendada |
+| E-mail | `email`, `e-mail`, `mail` | **sim — e só ela** |
+| Nome | `nome`, `colaborador`, `nome completo` | não (deduzido do e-mail) |
+| Área | `area`, `área`, `setor`, `departamento`, `lotação` | não |
+| Empresa | `empresa`, `organização`, `companhia`, `cliente` | não (deduzida do e-mail) |
 | Matrícula | `matricula`, `matrícula`, `chapa`, `registro` | não |
+
+### O banco deduz nome e empresa do e-mail
+
+`daniel.alves@dome.services` vira **Daniel Alves · DOME**. Uma lista só de e-mails já funciona.
+
+**Mas quando a coluna vier preenchida, ela ganha** — e vale a pena preenchê-la, porque **e-mail não
+tem acento**: `joao.goncalves@` vira "Joao Goncalves", e é assim que o nome sai no ranking e no
+certificado. `dsilva@` vira "Dsilva". Reimportar a lista com os nomes de verdade corrige todo mundo
+no acesso seguinte.
+
+Para uma empresa parceira aparecer com o nome bonito (`prumologistica.com.br` → "Prumo Logística"),
+cadastre o domínio uma vez no SQL Editor — as instruções estão no rodapé de
+`supabase/migrations/006_nome_e_empresa_do_email.sql`.
 
 **Nome, área e empresa aparecem no ranking** de quem escolher participar — nessa ordem, com área e
 empresa em letra menor abaixo do nome. Se vierem em branco, a pessoa aparece só com o e-mail
