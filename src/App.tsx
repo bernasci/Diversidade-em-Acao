@@ -26,7 +26,7 @@ import Inicio from './telas/Inicio'
 import TelaMissao from './telas/Missao'
 import Ranking from './telas/Ranking'
 import Perfil from './telas/Perfil'
-import Certificado from './telas/Certificado'
+import Conquistas from './telas/Conquistas'
 
 /* Ícones do lucide-react, importados um a um: o bundler descarta o resto da
    biblioteca, e o que sobra são quatro SVGs inline. Os glifos de texto que
@@ -34,14 +34,14 @@ import Certificado from './telas/Certificado'
 const ABAS = [
   { para: '/', Ico: Map, rotulo: 'Missões' },
   { para: '/ranking', Ico: Trophy, rotulo: 'Ranking' },
-  { para: '/certificado', Ico: Award, rotulo: 'Certificado' },
+  { para: '/conquistas', Ico: Award, rotulo: 'Conquistas' },
   { para: '/perfil', Ico: User, rotulo: 'Perfil' },
 ]
 
 const TITULOS: Record<string, string> = {
   '/': 'Missões',
   '/ranking': 'Ranking',
-  '/certificado': 'Certificado',
+  '/conquistas': 'Conquistas',
   '/perfil': 'Perfil',
 }
 
@@ -166,7 +166,10 @@ export default function App() {
             <Route path="/missao/:id" element={<TelaMissao />} />
             <Route path="/ranking" element={<Ranking />} />
             <Route path="/perfil" element={<Perfil />} />
-            <Route path="/certificado" element={<Certificado />} />
+            <Route path="/conquistas" element={<Conquistas />} />
+            {/* A aba se chamava Certificado. Quem tiver o link antigo salvo —
+                num e-mail do RH, num favorito — chega no lugar certo. */}
+            <Route path="/certificado" element={<Navigate to="/conquistas" replace />} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         )}

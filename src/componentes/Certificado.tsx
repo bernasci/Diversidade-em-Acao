@@ -1,27 +1,25 @@
 /* ==========================================================================
-   Certificado.tsx — o fecho da jornada.
+   Certificado.tsx — o certificado, agora como bloco e não como tela.
 
    Desenhado em <canvas> e baixado como PNG. Sem Supabase Storage, sem
-   biblioteca de PDF, sem cota consumida: o arquivo nasce e morre no
-   navegador da pessoa.
+   biblioteca de PDF, sem cota consumida: o arquivo nasce e morre no navegador
+   da pessoa.
 
-   O canvas é `aria-hidden`. Um leitor de tela não lê pixel — então o mesmo
+   O canvas é `aria-hidden`. Leitor de tela não lê pixel — então o mesmo
    conteúdo aparece logo abaixo em texto real, e é ele que o leitor anuncia.
    Não é uma "versão alternativa": é a mesma informação, na forma que cada
    pessoa consegue receber.
+
+   E vale registrar o que este arquivo NÃO é: credencial. O PNG nasce no
+   navegador e não fica guardado em lugar nenhum — qualquer um consegue forjar
+   um. É lembrança. O registro de quem concluiu está no banco, e é de lá que o
+   RH tira a lista para reconhecimento (ver `supabase/consultas.sql`).
    ========================================================================== */
 
 import { useCallback, useEffect, useRef } from 'react'
-import { Link } from 'react-router-dom'
 import { useEstado } from '../nucleo/estado'
 import { MISSOES, PERGUNTAS_POR_MISSAO, PTS_MAX } from '../conteudo/missoes'
-import {
-  acertosTotais,
-  medalhaDe,
-  MEDALHAS,
-  missoesCompletas,
-  tudoCompleto,
-} from '../nucleo/progresso'
+import { acertosTotais, medalhaDe, MEDALHAS } from '../nucleo/progresso'
 
 const L = 1600
 const A = 1100
@@ -30,7 +28,6 @@ export default function Certificado() {
   const { jogador, progresso } = useEstado()
   const canvasRef = useRef<HTMLCanvasElement>(null)
 
-  const completo = tudoCompleto(progresso)
   const medalha = medalhaDe(progresso)
   const acertos = acertosTotais(progresso)
   const totalPerguntas = MISSOES.length * PERGUNTAS_POR_MISSAO
@@ -38,14 +35,13 @@ export default function Certificado() {
 
   const desenhar = useCallback(() => {
     const cv = canvasRef.current
-    if (!cv || !jogador || !completo) return
+    if (!cv || !jogador) return
     const c = cv.getContext('2d')
     if (!c) return
 
     c.fillStyle = '#ffffff'
     c.fillRect(0, 0, L, A)
 
-    // faixa navy no topo + moldura ciano
     c.fillStyle = '#001E62'
     c.fillRect(0, 0, L, 150)
     c.strokeStyle = '#00BBDC'
@@ -53,7 +49,7 @@ export default function Certificado() {
     c.strokeRect(30, 30, L - 60, A - 60)
 
     c.fillStyle = '#ffffff'
-    c.font = 'bold 44px Sora, sans-serif'
+    c.font = 'bold 44px Inter, sans-serif'
     c.textAlign = 'center'
     c.fillText('DIVERSIDADE EM AÇÃO', L / 2, 95)
 
@@ -66,7 +62,7 @@ export default function Certificado() {
     c.fillText('Certificamos que', L / 2, 330)
 
     c.fillStyle = '#001E62'
-    c.font = 'bold 62px Sora, sans-serif'
+    c.font = 'bold 62px Inter, sans-serif'
     c.fillText(jogador.nome, L / 2, 415)
 
     c.fillStyle = '#141f3c'
@@ -82,15 +78,14 @@ export default function Certificado() {
 
     if (medalha) {
       c.fillStyle = '#001E62'
-      c.font = 'bold 34px Sora, sans-serif'
+      c.font = 'bold 34px Inter, sans-serif'
       c.fillText(`Medalha de ${MEDALHAS[medalha].nome}`, L / 2, 690)
     }
 
-    // temas cobertos
     c.fillStyle = '#3d4a68'
     c.font = '20px Inter, sans-serif'
     MISSOES.forEach((m, i) => {
-      c.fillText(`${m.ordem} · ${m.tema}`, L / 2, 760 + i * 34)
+      c.fillText(`${m.ordem} · ${m.nome} — ${m.tema}`, L / 2, 760 + i * 34)
     })
 
     c.strokeStyle = '#dfe6f0'
@@ -103,11 +98,13 @@ export default function Certificado() {
     c.fillStyle = '#5a6785'
     c.font = '22px Inter, sans-serif'
     c.fillText(data, L / 2, A - 90)
-  }, [jogador, completo, medalha, acertos, totalPerguntas, data])
+  }, [jogador, medalha, acertos, totalPerguntas, data])
 
   useEffect(() => {
     desenhar()
   }, [desenhar])
+
+  if (!jogador) return null
 
   function baixar() {
     const cv = canvasRef.current
@@ -115,73 +112,50 @@ export default function Certificado() {
     const a = document.createElement('a')
     a.download = `certificado-diversidade-em-acao-${(jogador?.nome ?? 'participante')
       .toLowerCase()
+      .normalize('NFD')
+      .replace(/[̀-ͯ]/g, '')
       .replace(/[^a-z0-9]+/g, '-')}.png`
     a.href = cv.toDataURL('image/png')
     a.click()
   }
 
-  if (!jogador) return null
-
-  if (!completo) {
-    const faltam = MISSOES.length - missoesCompletas(progresso)
-    return (
-      <div className="pilha-g">
-        <h1>Certificado</h1>
-        <div className="painel pilha">
-          <p>
-            <strong>Ainda não.</strong> Faltam <strong>{faltam}</strong>{' '}
-            {faltam === 1 ? 'missão' : 'missões'} para o certificado ficar disponível — cada missão exige
-            o jogo e as {PERGUNTAS_POR_MISSAO} perguntas.
-          </p>
-          <p>
-            <Link className="botao botao--primario" to="/">
-              Ver o que falta →
-            </Link>
-          </p>
-        </div>
-      </div>
-    )
-  }
-
   return (
-    <div className="pilha-g">
-      <h1>Certificado</h1>
+    <div className="pilha">
+      <canvas
+        ref={canvasRef}
+        width={L}
+        height={A}
+        aria-hidden="true"
+        style={{
+          width: '100%',
+          height: 'auto',
+          border: '1px solid var(--linha)',
+          borderRadius: 'var(--r-sm)',
+        }}
+      />
 
-      <div className="painel pilha">
-        <canvas
-          ref={canvasRef}
-          width={L}
-          height={A}
-          aria-hidden="true"
-          style={{ width: '100%', height: 'auto', border: '1px solid var(--linha)', borderRadius: 'var(--raio-s)' }}
-        />
-
+      <div className="acoes">
         <button type="button" className="botao botao--primario" onClick={baixar}>
           Baixar certificado (PNG)
         </button>
       </div>
 
-      {/* A mesma informação do canvas, em texto — para leitor de tela, para
-          copiar e colar, e para quem só quer conferir os números. */}
-      <section className="painel pilha" aria-labelledby="t-texto">
-        <h2 id="t-texto" style={{ fontSize: '1.125rem' }}>
-          Conteúdo do certificado
-        </h2>
+      <details className="jogo__como">
+        <summary>Ler o conteúdo do certificado em texto</summary>
         <p>
-          Certificamos que <strong>{jogador.nome}</strong> concluiu as {MISSOES.length}{' '}
-          missões da jornada <strong>Diversidade em Ação</strong>, sobre inclusão de Pessoas com
-          Deficiência no mundo do trabalho, acertando <strong>{acertos}</strong> das {totalPerguntas}{' '}
-          perguntas e somando <strong>{jogador.pts}</strong> de {PTS_MAX} pontos.
-          {medalha && <> Medalha de <strong>{MEDALHAS[medalha].nome}</strong>.</>} Emitido em {data}.
+          Certificamos que <strong>{jogador.nome}</strong> concluiu as {MISSOES.length} missões da
+          jornada <strong>Diversidade em Ação</strong>, sobre inclusão de Pessoas com Deficiência no
+          mundo do trabalho, acertando <strong>{acertos}</strong> das {totalPerguntas} perguntas e
+          somando <strong>{jogador.pts}</strong> de {PTS_MAX} pontos.
+          {medalha && (
+            <>
+              {' '}
+              Medalha de <strong>{MEDALHAS[medalha].nome}</strong>.
+            </>
+          )}{' '}
+          Emitido em {data}.
         </p>
-        <ul>
-          {MISSOES.map((m) => (
-            <li key={m.id}>
-              {m.ordem} · {m.tema}
-            </li>
-          ))}
-        </ul>
-      </section>
+      </details>
     </div>
   )
 }
@@ -211,4 +185,3 @@ function quebrarLinhas(
   }
   if (linha) c.fillText(linha, x, yAtual)
 }
-

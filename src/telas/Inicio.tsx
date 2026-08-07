@@ -57,12 +57,19 @@ export default function Inicio() {
           </p>
         </div>
 
+        {/* O número é PONTO; a barra e a porcentagem são JORNADA. Antes os dois
+            vinham na mesma frase — "22 de 120 pontos · 30%" — e liam como se
+            22/120 desse 30%, o que é falso: 30% eram as tarefas feitas. Uma
+            conta por linha. */}
         <div className="heroi__pontos">
           <b>{jogador.pts}</b>
-          <span className="meta">de {PTS_MAX} pontos · {pct}%</span>
+          <span className="meta">de {PTS_MAX} pontos</span>
         </div>
 
         <Barra pct={pct} rotulo={`Progresso da jornada: ${pct} por cento`} />
+        <p className="meta">
+          {pct}% da jornada · {completas} de {MISSOES.length} missões
+        </p>
 
         <div className="acoes">
           {proxima ? (
@@ -70,7 +77,7 @@ export default function Inicio() {
               {completas === 0 ? 'Começar a Missão 1 →' : 'Continuar de onde parei →'}
             </Link>
           ) : (
-            <Link className="botao botao--primario" to="/certificado">
+            <Link className="botao botao--primario" to="/conquistas">
               Ver meu certificado →
             </Link>
           )}
