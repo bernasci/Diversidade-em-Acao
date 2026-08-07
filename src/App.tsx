@@ -17,7 +17,7 @@
 
 import { useEffect, useRef } from 'react'
 import { NavLink, Navigate, Route, Routes, useLocation } from 'react-router-dom'
-import { Award, Map, Trophy, User } from 'lucide-react'
+import { Map, Trophy, User } from 'lucide-react'
 import { useEstado } from './nucleo/estado'
 import { Carregando } from './componentes/comuns'
 import { PTS_MAX } from './conteudo/missoes'
@@ -26,22 +26,23 @@ import Inicio from './telas/Inicio'
 import TelaMissao from './telas/Missao'
 import Ranking from './telas/Ranking'
 import Perfil from './telas/Perfil'
-import Conquistas from './telas/Conquistas'
 
 /* Ícones do lucide-react, importados um a um: o bundler descarta o resto da
    biblioteca, e o que sobra são quatro SVGs inline. Os glifos de texto que
    estavam aqui antes (◆ ▲ ★ ●) renderizavam diferente em cada sistema. */
+/* Três abas, e não quatro. A quarta já foi "Certificado" e depois
+   "Conquistas", e nas duas formas ela era um lugar para onde a pessoa não
+   tinha motivo de ir: o certificado vive no fim da trilha, onde ele é a
+   consequência das cinco missões, e não uma seção à parte. */
 const ABAS = [
   { para: '/', Ico: Map, rotulo: 'Missões' },
   { para: '/ranking', Ico: Trophy, rotulo: 'Ranking' },
-  { para: '/conquistas', Ico: Award, rotulo: 'Conquistas' },
   { para: '/perfil', Ico: User, rotulo: 'Perfil' },
 ]
 
 const TITULOS: Record<string, string> = {
   '/': 'Missões',
   '/ranking': 'Ranking',
-  '/conquistas': 'Conquistas',
   '/perfil': 'Perfil',
 }
 
@@ -166,10 +167,11 @@ export default function App() {
             <Route path="/missao/:id" element={<TelaMissao />} />
             <Route path="/ranking" element={<Ranking />} />
             <Route path="/perfil" element={<Perfil />} />
-            <Route path="/conquistas" element={<Conquistas />} />
-            {/* A aba se chamava Certificado. Quem tiver o link antigo salvo —
-                num e-mail do RH, num favorito — chega no lugar certo. */}
-            <Route path="/certificado" element={<Navigate to="/conquistas" replace />} />
+            {/* Links antigos: a aba já se chamou Certificado e Conquistas.
+                Quem tiver um deles salvo num e-mail do RH ou num favorito cai
+                nas missões, que é onde o certificado passou a viver. */}
+            <Route path="/certificado" element={<Navigate to="/" replace />} />
+            <Route path="/conquistas" element={<Navigate to="/" replace />} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         )}

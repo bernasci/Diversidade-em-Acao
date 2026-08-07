@@ -29,6 +29,7 @@ import {
   respondidas,
 } from '../nucleo/progresso'
 import { Barra, GradeMedalhas, Selo } from '../componentes/comuns'
+import Certificado from '../componentes/Certificado'
 
 export default function Inicio() {
   const { jogador, progresso } = useEstado()
@@ -77,9 +78,11 @@ export default function Inicio() {
               {completas === 0 ? 'Começar a Missão 1 →' : 'Continuar de onde parei →'}
             </Link>
           ) : (
-            <Link className="botao botao--primario" to="/conquistas">
-              Ver meu certificado →
-            </Link>
+            /* Âncora, não rota: o certificado está nesta mesma tela, no fim.
+               Mandar para outra rota seria fingir que ele mora em outro lugar. */
+            <a className="botao botao--primario" href="#certificado">
+              Ver meu certificado ↓
+            </a>
           )}
         </div>
       </section>
@@ -135,6 +138,35 @@ export default function Inicio() {
             )
           })}
         </ol>
+      </section>
+
+      {/* O CERTIFICADO FECHA A TRILHA, logo depois da quinta missão.
+
+          Ele já foi aba própria, duas vezes, e nas duas era um lugar para onde
+          a pessoa não tinha motivo de ir enquanto não terminasse. Aqui ele é a
+          consequência visível das cinco missões: quem rola a lista até o fim
+          encontra o que ganha ao chegar lá — e quanto falta. */}
+      <section className="pilha" id="certificado" aria-labelledby="t-certificado">
+        <h2 id="t-certificado">Certificado</h2>
+
+        {faltam === 0 ? (
+          <Certificado />
+        ) : (
+          <div className="painel pilha">
+            <p className="prosa">
+              Falta{faltam === 1 ? '' : 'm'} <strong>{faltam}</strong>{' '}
+              {faltam === 1 ? 'missão' : 'missões'}. Cada uma precisa do jogo e das{' '}
+              {PERGUNTAS_POR_MISSAO} perguntas.
+            </p>
+            <Barra
+              pct={(completas / MISSOES.length) * 100}
+              rotulo={`${completas} de ${MISSOES.length} missões concluídas`}
+            />
+            <p className="meta">
+              {completas} de {MISSOES.length} concluídas
+            </p>
+          </div>
+        )}
       </section>
     </div>
   )

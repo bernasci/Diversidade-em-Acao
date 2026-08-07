@@ -178,7 +178,7 @@ export default function TelaMissao() {
                 Próxima: {proxima.nome} →
               </Link>
             ) : (
-              <Link className="botao botao--primario" to="/conquistas">
+              <Link className="botao botao--primario" to="/#certificado">
                 Ver meu certificado →
               </Link>
             )}
