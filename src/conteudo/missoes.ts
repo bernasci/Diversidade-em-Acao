@@ -31,27 +31,36 @@ export const PTS_BONUS = 20
 export const PERGUNTAS_POR_MISSAO = 5
 
 /* --------------------------------------------------------------------------
-   OS NOMES SÃO VERBOS, e isso é o sistema.
+   UM VERBO POR MISSÃO. É esse o sistema.
 
-   O jogo se chama "Diversidade em AÇÃO". Os cinco títulos são, todos,
-   infinitivo + objeto curto, e lidos em sequência formam uma frase só:
+   O jogo se chama "Diversidade em AÇÃO", e cada missão é uma ação:
 
-       Entender o terreno · Chamar pelo nome certo · Derrubar barreiras ·
-       Enxergar o invisível · Abrir caminho
+       ENTENDER · CONHECER · ADAPTAR · DESAPRENDER · AGIR
 
-   Antes eram cinco registros diferentes — metáfora de jornada, ação,
-   observação, metáfora espacial — e por isso não pareciam partes da mesma
-   coisa. O tema já estava na tela (a trilha, os nós, "A jornada"); faltava
-   nos nomes.
+   Cinco palavras, cinco campos de significado distintos, terminando no verbo
+   que dá nome ao jogo. No card da trilha o título de uma palavra também para
+   de competir com o tema logo abaixo, que é quem carrega o conteúdo.
 
-   As taglines seguem uma forma só: contraste ou tríade curta, segunda
-   pessoa, sem eufemismo corporativo. Cada uma diz o que a missão desmonta.
+   O RISCO DESSE SISTEMA, e como ele é contido: "entender" e "conhecer" são
+   quase sinônimos, e só se sustentam lado a lado porque os objetos são
+   claramente diferentes — entende-se a REGRA (abstrata, jurídica), conhecem-se
+   as PESSOAS (concretas, plurais). O `tema` de cada missão existe justamente
+   para tornar isso explícito, e por isso ele nunca some da tela junto com o
+   nome.
+
+   "Desaprender" é o mais forte dos cinco e é deliberado: capacitismo não é
+   ignorância, é coisa aprendida. Não se corrige aprendendo mais por cima —
+   corrige-se desmontando o que já está lá.
+
+   As taglines seguem uma forma só: contraste ou tríade curta, segunda pessoa,
+   sem eufemismo corporativo. Cada uma diz o que a missão desmonta, e cada uma
+   concorda com o verbo que a nomeia.
    -------------------------------------------------------------------------- */
 export const MISSOES: Missao[] = [
   {
     id: 'm1',
     ordem: 'Missão 01',
-    nome: 'Entender o terreno',
+    nome: 'Entender',
     tema: 'Conceitos e a Lei de Cotas',
     tagline: 'O que a lei exige, o que ela proíbe e por que isso não é caridade.',
     aprender: [
@@ -67,9 +76,9 @@ export const MISSOES: Missao[] = [
   {
     id: 'm2',
     ordem: 'Missão 02',
-    nome: 'Chamar pelo nome certo',
+    nome: 'Conhecer',
     tema: 'Tipos de deficiência e comunicação respeitosa',
-    tagline: 'A palavra que respeita, a que fere e o que fazer quando você não sabe.',
+    tagline: 'Os tipos, o nome certo de cada um e o que fazer quando você não sabe.',
     aprender: [
       'O termo correto é "pessoa com deficiência" — pessoa primeiro, deficiência depois. "Portador", "deficiente", "especial" e "excepcional" saíram de uso: ninguém porta uma deficiência como quem porta um documento.',
       'As deficiências podem ser física, visual, auditiva, intelectual, psicossocial, múltipla — e o Transtorno do Espectro Autista tem, por lei, os mesmos direitos.',
@@ -84,7 +93,7 @@ export const MISSOES: Missao[] = [
   {
     id: 'm3',
     ordem: 'Missão 03',
-    nome: 'Derrubar barreiras',
+    nome: 'Adaptar',
     tema: 'Acessibilidade e adaptações razoáveis',
     tagline: 'A barreira que se vê, a que ninguém vê e a que custa quase nada.',
     aprender: [
@@ -101,7 +110,7 @@ export const MISSOES: Missao[] = [
   {
     id: 'm4',
     ordem: 'Missão 04',
-    nome: 'Enxergar o invisível',
+    nome: 'Desaprender',
     tema: 'Capacitismo e vieses inconscientes',
     tagline: 'O elogio que diminui, a ajuda que atrapalha, a pergunta que não se faz.',
     aprender: [
@@ -118,7 +127,7 @@ export const MISSOES: Missao[] = [
   {
     id: 'm5',
     ordem: 'Missão 05',
-    nome: 'Abrir caminho',
+    nome: 'Agir',
     tema: 'Carreira, liderança e inclusão no dia a dia',
     tagline: 'Contratar é o começo. Ficar, crescer e ser promovido é o assunto.',
     aprender: [
