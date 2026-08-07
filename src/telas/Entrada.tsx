@@ -55,9 +55,7 @@ export default function Entrada() {
           <div className="pilha-2">
             <img src="/marca.svg" alt="" width="64" height="64" className="palco__marca" />
             <h1 className="palco__titulo">Diversidade em Ação</h1>
-            <p className="palco__sub">
-              Cinco missões sobre a inclusão de Pessoas com Deficiência no mundo do trabalho.
-            </p>
+            <p className="palco__sub">Gamificação da Semana da Diversidade</p>
           </div>
 
           <form className="palco__cartao pilha" onSubmit={enviar} noValidate>
@@ -74,14 +72,10 @@ export default function Entrada() {
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                aria-describedby="ajuda-email"
                 aria-invalid={erro ? true : undefined}
                 disabled={enviando}
                 placeholder="nome.sobrenome@empresa.com.br"
               />
-              <span className="campo__ajuda" id="ajuda-email">
-                Não precisa de senha. Só quem está na lista do RH consegue entrar.
-              </span>
             </div>
 
             {erro && <Erro>{erro}</Erro>}
