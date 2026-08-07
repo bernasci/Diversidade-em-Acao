@@ -59,7 +59,7 @@ Deno.serve(async (req) => {
   /* ---------------------------------------------------------------- lista */
   const { data: elegivel, error: erroLista } = await sb
     .from('elegiveis')
-    .select('email, nome, area, matricula')
+    .select('email, nome, area, empresa, matricula')
     .eq('email', email)
     .maybeSingle()
 
@@ -94,16 +94,15 @@ Deno.serve(async (req) => {
     .maybeSingle<Jogador>()
 
   if (!jogador) {
-    const nome = String(elegivel.nome ?? '').trim()
+    // Nome, área e empresa vêm da lista do RH e o jogador não os edita: é o
+    // que faz o ranking dizer a verdade sobre quem é quem.
     const { data: criado, error: erroCriar } = await sb
       .from('jogadores')
       .insert({
         email,
-        nome,
-        // Apelido inicial: o primeiro nome. Editável no Perfil, e é ele — não
-        // o nome completo — que aparece no ranking.
-        apelido: nome.split(/\s+/)[0] || email.split('@')[0],
+        nome: String(elegivel.nome ?? '').trim(),
         area: elegivel.area ?? null,
+        empresa: elegivel.empresa ?? null,
       })
       .select(CAMPOS_JOGADOR)
       .single<Jogador>()
@@ -111,7 +110,22 @@ Deno.serve(async (req) => {
     if (erroCriar || !criado) return erro('desconhecido', 'Não conseguimos criar seu perfil.', 500)
     jogador = criado
   } else {
-    await sb.from('jogadores').update({ ultimo_acesso: new Date().toISOString() }).eq('id', jogador.id)
+    /* Reespelha nome, área e empresa da lista a cada acesso. O RH sempre
+       manda a planilha corrigida depois do primeiro lote — sem isto, quem
+       entrou antes da correção ficaria com o nome errado no ranking para
+       sempre, e ninguém saberia por quê. */
+    const { data: atualizado } = await sb
+      .from('jogadores')
+      .update({
+        ultimo_acesso: new Date().toISOString(),
+        nome: String(elegivel.nome ?? '').trim() || jogador.nome,
+        area: elegivel.area ?? jogador.area,
+        empresa: elegivel.empresa ?? jogador.empresa,
+      })
+      .eq('id', jogador.id)
+      .select(CAMPOS_JOGADOR)
+      .maybeSingle<Jogador>()
+    if (atualizado) jogador = atualizado
   }
 
   /* --------------------------------------------------------- limite de uso

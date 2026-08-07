@@ -9,10 +9,14 @@
    nomes aceitos são generosos de propósito — o arquivo vem do RH, exportado
    do Excel, e ninguém deveria ter de renomear coluna para importar:
 
-     email | e-mail | mail            → obrigatória
-     nome  | colaborador             → opcional
-     area  | área | setor | departamento → opcional
-     matricula | matrícula | chapa    → opcional
+     email | e-mail | mail                  → obrigatória
+     nome  | colaborador                    → recomendada, aparece no ranking
+     area  | área | setor | departamento    → recomendada, aparece no ranking
+     empresa | organizacao | organização    → recomendada, aparece no ranking
+     matricula | matrícula | chapa          → opcional
+
+   `empresa` existe porque o evento não é só da DOME: participam pessoas de
+   outras empresas, e no ranking cada uma aparece com a sua.
 
    IDEMPOTENTE: rodar de novo com a lista corrigida atualiza as linhas
    existentes em vez de duplicar. É para ser rodado várias vezes mesmo — a
@@ -88,6 +92,7 @@ function analisar(texto) {
   const iEmail = acha('email', 'e-mail', 'mail', 'e mail')
   const iNome = acha('nome', 'colaborador', 'nome completo')
   const iArea = acha('area', 'setor', 'departamento', 'lotacao')
+  const iEmpresa = acha('empresa', 'organizacao', 'companhia', 'cliente')
   const iMat = acha('matricula', 'chapa', 'registro')
 
   if (iEmail === -1) {
@@ -112,6 +117,7 @@ function analisar(texto) {
       email,
       nome: iNome === -1 ? null : c[iNome] || null,
       area: iArea === -1 ? null : c[iArea] || null,
+      empresa: iEmpresa === -1 ? null : c[iEmpresa] || null,
       matricula: iMat === -1 ? null : c[iMat] || null,
     })
   }

@@ -17,13 +17,13 @@
       continua sendo uma <table> de verdade, com cabeçalho e <caption>, que é
       o que o leitor de tela precisa para navegar por coluna.
 
-   A leitura vem da view materializada `ranking_publico`, que expõe apelido,
+   A leitura vem da view materializada `ranking_publico`, que expõe o nome curto,
    área e pontos — nunca e-mail, nome completo ou id.
    ========================================================================== */
 
 import { useCallback, useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { buscarRanking } from '../nucleo/api'
+import { buscarRanking, nomeCurto } from '../nucleo/api'
 import { useEstado } from '../nucleo/estado'
 import { Carregando, Nota, Vazio } from '../componentes/comuns'
 import type { LinhaRanking } from '../nucleo/tipos'
@@ -43,7 +43,9 @@ export default function Ranking() {
   }, [carregar])
 
   const filtradas = (linhas ?? []).filter(
-    (l) => !busca.trim() || `${l.apelido} ${l.area ?? ''}`.toLowerCase().includes(busca.trim().toLowerCase()),
+    (l) =>
+      !busca.trim() ||
+      `${l.nome} ${l.area ?? ''} ${l.empresa ?? ''}`.toLowerCase().includes(busca.trim().toLowerCase()),
   )
 
   return (
@@ -65,7 +67,7 @@ export default function Ranking() {
       )}
 
       <div className="campo">
-        <label htmlFor="busca-ranking">Buscar por apelido ou área</label>
+        <label htmlFor="busca-ranking">Buscar por nome, área ou empresa</label>
         <input
           id="busca-ranking"
           type="search"
@@ -86,7 +88,7 @@ export default function Ranking() {
             </>
           ) : (
             <>
-              Nenhum resultado para <strong>{busca}</strong>. Tente parte do apelido ou o nome da área.
+              Nenhum resultado para <strong>{busca}</strong>. Tente parte do nome, da área ou da empresa.
             </>
           )}
         </Vazio>
@@ -100,21 +102,28 @@ export default function Ranking() {
               <tr>
                 <th scope="col">#</th>
                 <th scope="col">Participante</th>
-                <th scope="col">Área</th>
+                <th scope="col">Área e empresa</th>
                 <th scope="col">Pontos</th>
               </tr>
             </thead>
             <tbody>
               {filtradas.map((l) => {
-                const eu = Boolean(jogador?.opt_in && jogador.apelido === l.apelido)
+                /* "você" sai do nome já encurtado pela view, comparado com o
+                   mesmo encurtamento feito aqui — os dois usam a mesma regra
+                   (primeiro + último), então batem. */
+                const eu = Boolean(jogador?.opt_in && nomeCurto(jogador.nome) === l.nome)
+                const origem = [l.area, l.empresa].filter(Boolean).join(' · ')
                 return (
-                  <tr key={`${l.posicao}-${l.apelido}`} data-eu={eu ? 'sim' : undefined}>
+                  <tr key={`${l.posicao}-${l.nome}`} data-eu={eu ? 'sim' : undefined}>
                     <td className="col-pos">{l.posicao}</td>
                     <td className="col-nome">
-                      {l.apelido}
+                      <span className="col-nome__avatar" aria-hidden="true" style={{ background: l.cor }}>
+                        {l.emoji}
+                      </span>
+                      {l.nome}
                       {eu && <strong> · você</strong>}
                     </td>
-                    <td className="col-area">{l.area ?? '—'}</td>
+                    <td className="col-area">{origem || '—'}</td>
                     <td className="col-pts">{l.pts}</td>
                   </tr>
                 )

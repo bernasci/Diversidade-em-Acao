@@ -98,7 +98,9 @@ await limpar() // resíduo de uma execução interrompida
 await rest('elegiveis', {
   method: 'POST',
   headers: { prefer: 'resolution=merge-duplicates,return=minimal' },
-  body: JSON.stringify([{ email: EMAIL, nome: 'QA Descartavel', area: 'Testes', matricula: '9999' }]),
+  body: JSON.stringify([
+    { email: EMAIL, nome: 'Ana Descartavel de Testes', area: 'Testes', empresa: 'QA Ltda', matricula: '9999' },
+  ]),
 })
 console.log('  elegível de QA criado')
 
@@ -113,8 +115,10 @@ try {
   ok(typeof e.d?.token === 'string' && e.d.token.length > 30, 'devolve token opaco')
   ok(e.d?.jogador?.pts === 0, 'placar começa em zero', String(e.d?.jogador?.pts))
   ok(e.d?.jogador?.opt_in === false, 'opt_in do ranking nasce FALSO')
-  ok(e.d?.jogador?.apelido === 'QA', 'apelido inicial = primeiro nome', e.d?.jogador?.apelido)
+  ok(e.d?.jogador?.nome === 'Ana Descartavel de Testes', 'nome completo veio da lista do RH')
+  ok(e.d?.jogador?.apelido === undefined, 'apelido NÃO chega mais ao app')
   ok(e.d?.jogador?.area === 'Testes', 'área veio da lista do RH')
+  ok(e.d?.jogador?.empresa === 'QA Ltda', 'empresa veio da lista do RH')
   ok(Array.isArray(e.d?.progresso) && e.d.progresso.length === 0, 'progresso começa vazio')
   const T = e.d.token
 
@@ -164,27 +168,39 @@ try {
 
   /* --------------------------------------------------------------- perfil -- */
   console.log('\n--- perfil: só o que é cosmético ---')
-  const p1 = await fn('jogar', { acao: 'perfil', apelido: 'Fulano QA', emoji: '🚀', cor: '#00BBDC', opt_in: true }, T)
-  ok(p1.d?.jogador?.apelido === 'Fulano QA', 'apelido salvo')
+  const p1 = await fn('jogar', { acao: 'perfil', emoji: '🚀', cor: '#00BBDC', opt_in: true }, T)
+  ok(p1.d?.jogador?.emoji === '🚀', 'avatar salvo')
   ok(p1.d?.jogador?.opt_in === true, 'entrou no ranking')
 
-  const p2 = await fn('jogar', { acao: 'perfil', pts: 9999, area: 'Diretoria', email: 'outro@x.com' }, T)
+  const p2 = await fn(
+    'jogar',
+    { acao: 'perfil', pts: 9999, nome: 'Impostor', area: 'Diretoria', empresa: 'Outra', email: 'outro@x.com' },
+    T,
+  )
   ok(p2.d?.jogador?.pts === 12, 'escrever pts é IGNORADO', String(p2.d?.jogador?.pts))
-  ok(p2.d?.jogador?.area === 'Testes', 'trocar a área é ignorado')
+  ok(p2.d?.jogador?.nome === 'Ana Descartavel de Testes', 'trocar o nome é ignorado')
+  ok(p2.d?.jogador?.area === 'Testes', 'trocar a área é ignorada')
+  ok(p2.d?.jogador?.empresa === 'QA Ltda', 'trocar a empresa é ignorada')
   ok(p2.d?.jogador?.email === EMAIL, 'trocar o e-mail é ignorado')
-  ok((await fn('jogar', { acao: 'perfil', apelido: 'x' }, T)).status === 400, 'apelido curto demais é recusado')
 
   /* -------------------------------------------------------------- ranking -- */
   console.log('\n--- ranking público ---')
   const rk = await (await comoAnon('ranking_publico?select=*')).json()
-  const linha = rk.find((l) => l.apelido === 'Fulano QA')
-  ok(!!linha, 'quem optou aparece')
-  ok(linha?.pts === 12 && linha?.area === 'Testes', 'com pontos e área corretos')
-  ok(linha && !('email' in linha) && !('nome' in linha) && !('id' in linha), 'a view NÃO expõe e-mail, nome nem id')
+  const linha = rk.find((l) => l.nome === 'Ana Testes')
+  ok(!!linha, 'quem optou aparece, com primeiro nome + último sobrenome')
+  ok(linha?.pts === 12 && linha?.area === 'Testes' && linha?.empresa === 'QA Ltda', 'com pontos, área e empresa')
+  ok(
+    linha && !('email' in linha) && !('id' in linha) && !('matricula' in linha),
+    'a view NÃO expõe e-mail, id nem matrícula',
+  )
+  ok(
+    !rk.some((l) => String(l.nome).includes('Descartavel')),
+    'o nome COMPLETO não sai da view — só o encurtado',
+  )
 
   await fn('jogar', { acao: 'perfil', opt_in: false }, T)
   const rk2 = await (await comoAnon('ranking_publico?select=*')).json()
-  ok(!rk2.some((l) => l.apelido === 'Fulano QA'), 'quem sai some da lista')
+  ok(!rk2.some((l) => l.nome === 'Ana Testes'), 'quem sai some da lista')
 
   /* --------------------------------------------------------------- estado -- */
   console.log('\n--- estado retomado ---')

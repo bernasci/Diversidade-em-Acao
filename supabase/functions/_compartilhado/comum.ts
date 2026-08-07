@@ -56,15 +56,18 @@ export interface Jogador {
   id: string
   email: string
   nome: string
-  apelido: string
   area: string | null
+  empresa: string | null
   emoji: string
   cor: string
   pts: number
   opt_in: boolean
 }
 
-export const CAMPOS_JOGADOR = 'id,email,nome,apelido,area,emoji,cor,pts,opt_in'
+/* `apelido` não está aqui de propósito: o ranking passou a mostrar o nome
+   real, e a coluna virou resíduo (ver 005_nome_e_empresa.sql). Não sendo
+   selecionada, ela não chega ao app nem por engano. */
+export const CAMPOS_JOGADOR = 'id,email,nome,area,empresa,emoji,cor,pts,opt_in'
 
 /** Resolve a sessão a partir do cabeçalho `x-sessao`. Devolve null se o token
     não existe, expirou ou nem veio — a interface trata os três do mesmo jeito:

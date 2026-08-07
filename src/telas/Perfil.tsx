@@ -1,66 +1,52 @@
-﻿/* ==========================================================================
-   Perfil.tsx â€” apelido, avatar e a decisÃ£o sobre o ranking.
+/* ==========================================================================
+   Perfil.tsx — quem você é, e a decisão sobre aparecer.
 
-   O cliente sÃ³ altera campo cosmÃ©tico. Pontos, Ã¡rea e progresso nÃ£o estÃ£o
-   aqui e nÃ£o estÃ£o em lugar nenhum que o navegador alcance: quem os grava Ã©
-   a Edge Function, que roda com service_role. Isso nÃ£o Ã© sÃ³ seguranÃ§a â€” Ã© o
-   que faz o resultado de quem jogou honestamente valer alguma coisa.
+   NOME, ÁREA E EMPRESA NÃO SE EDITAM AQUI. Vêm da lista do RH e são
+   reespelhados a cada acesso. Antes existia um apelido editável, e era ele
+   que o ranking mostrava; agora mostra o nome real, e é isso que faz a lista
+   pública valer como registro do evento — apelido escolhido por quem joga
+   não serve de registro de nada.
 
-   O opt-out do ranking vale nos dois lugares: quem sai do ranking tambÃ©m
-   desaparece da busca por apelido. Opt-out que vale sÃ³ num lugar nÃ£o Ã©
-   opt-out.
+   O que sobra para o jogador escolher é o avatar e, principalmente, SE quer
+   aparecer. Com nome real em jogo, o texto do opt-in tem de dizer exatamente
+   o que fica visível — e é o que ele faz, listando os campos um a um.
    ========================================================================== */
 
 import { useState } from 'react'
-import { salvarPerfil } from '../nucleo/api'
+import { nomeCurto, salvarPerfil } from '../nucleo/api'
 import { useEstado } from '../nucleo/estado'
 import { useAvisos } from '../componentes/avisos'
-import { Erro, GradeMedalhas } from '../componentes/comuns'
+import { Erro, GradeMedalhas, Nota } from '../componentes/comuns'
 import { medalhaDe, MEDALHAS } from '../nucleo/progresso'
 import { ErroApi } from '../nucleo/tipos'
 
-const EMOJIS = ['ðŸ˜€', 'ðŸ™‚', 'ðŸ˜Ž', 'ðŸ¤“', 'ðŸ§‘â€ðŸ’»', 'ðŸ§‘â€ðŸ”§', 'ðŸ‘·', 'ðŸ¦¾', 'ðŸ§ ', 'ðŸŒ±', 'âš“', 'ðŸš€']
+const EMOJIS = ['😀', '🙂', '😎', '🤓', '🧑‍💻', '🧑‍🔧', '👷', '🦾', '🧠', '🌱', '⚓', '🚀']
 const CORES = ['#004AA1', '#00BBDC', '#1E8E5A', '#B8791A', '#7C5CE0', '#C23B22']
 
 export default function Perfil() {
   const { jogador, progresso, atualizarJogador, sair } = useEstado()
   const { avisar } = useAvisos()
-  const [apelido, setApelido] = useState(jogador?.apelido ?? '')
-  const [emoji, setEmoji] = useState(jogador?.emoji ?? 'ðŸ˜€')
+  const [emoji, setEmoji] = useState(jogador?.emoji ?? '😀')
   const [cor, setCor] = useState(jogador?.cor ?? CORES[0])
   const [salvando, setSalvando] = useState(false)
   const [erro, setErro] = useState<string | null>(null)
 
   if (!jogador) return null
-  const medalha = medalhaDe(progresso)
 
-  async function salvar() {
-    const limpo = apelido.trim()
-    if (limpo.length < 2 || limpo.length > 24) {
-      setErro('O apelido precisa ter entre 2 e 24 caracteres.')
-      return
-    }
+  const medalha = medalhaDe(progresso)
+  const origem = [jogador.area, jogador.empresa].filter(Boolean).join(' · ')
+
+  /* Salva na hora, sem botão "Salvar": são três escolhas de um toque cada, e
+     um formulário com botão faria a pessoa achar que precisa confirmar. */
+  async function salvar(mudanca: { emoji?: string; cor?: string; opt_in?: boolean }, aviso: string) {
     setErro(null)
     setSalvando(true)
     try {
-      const r = await salvarPerfil({ apelido: limpo, emoji, cor })
+      const r = await salvarPerfil(mudanca)
       atualizarJogador(r.jogador)
-      avisar('Perfil salvo.', 'ok')
+      avisar(aviso, 'ok')
     } catch (e) {
-      setErro(e instanceof ErroApi ? e.message : 'NÃ£o conseguimos salvar. Tente de novo.')
-    } finally {
-      setSalvando(false)
-    }
-  }
-
-  async function alternarRanking() {
-    setSalvando(true)
-    try {
-      const r = await salvarPerfil({ opt_in: !jogador!.opt_in })
-      atualizarJogador(r.jogador)
-      avisar(r.jogador.opt_in ? 'VocÃª entrou no ranking.' : 'VocÃª saiu do ranking.', 'ok')
-    } catch (e) {
-      setErro(e instanceof ErroApi ? e.message : 'NÃ£o conseguimos salvar. Tente de novo.')
+      setErro(e instanceof ErroApi ? e.message : 'Não conseguimos salvar. Tente de novo.')
     } finally {
       setSalvando(false)
     }
@@ -72,7 +58,7 @@ export default function Perfil() {
 
       <section className="painel pilha" aria-labelledby="t-identidade">
         <h2 id="t-identidade" style={{ fontSize: '1.125rem' }}>
-          Como vocÃª aparece
+          Como você aparece
         </h2>
 
         <div className="linha">
@@ -83,6 +69,7 @@ export default function Perfil() {
               placeItems: 'center',
               width: '4rem',
               height: '4rem',
+              flex: 'none',
               borderRadius: '50%',
               background: cor,
               fontSize: '2rem',
@@ -90,29 +77,19 @@ export default function Perfil() {
           >
             {emoji}
           </span>
-          <div>
-            <p style={{ fontWeight: 700 }}>{apelido || jogador.nome}</p>
-            <p className="meta">{jogador.area ?? 'Ãrea nÃ£o informada'}</p>
+          <div style={{ minWidth: 0 }}>
+            <p style={{ fontWeight: 700, fontSize: 'var(--t-md)' }}>{nomeCurto(jogador.nome)}</p>
+            <p className="meta">{origem || 'Área e empresa não informadas'}</p>
           </div>
         </div>
 
-        <div className="campo">
-          <label htmlFor="apelido">Apelido no ranking</label>
-          <input
-            id="apelido"
-            value={apelido}
-            maxLength={24}
-            onChange={(e) => setApelido(e.target.value)}
-            aria-describedby="ajuda-apelido"
-          />
-          <span className="campo__ajuda" id="ajuda-apelido">
-            Ã‰ este nome que aparece para as outras pessoas. Seu nome completo e seu e-mail nunca
-            aparecem no ranking.
-          </span>
-        </div>
+        <p className="meta">
+          Nome, área e empresa vêm da lista do RH e não se editam aqui. Se algo estiver errado, fale
+          com o RH — a correção aparece no seu próximo acesso.
+        </p>
 
         <fieldset style={{ border: 0, padding: 0 }}>
-          <legend style={{ fontWeight: 600, fontSize: '.9375rem', marginBottom: '.375rem' }}>Ãcone</legend>
+          <legend style={{ fontWeight: 600, fontSize: '.9375rem', marginBottom: '.375rem' }}>Ícone</legend>
           <div className="linha" style={{ gap: '.375rem' }}>
             {EMOJIS.map((e) => (
               <button
@@ -120,13 +97,13 @@ export default function Perfil() {
                 type="button"
                 className="botao botao--secundario"
                 aria-pressed={emoji === e}
-                aria-label={`Ãcone ${e}`}
-                style={{
-                  minWidth: '3rem',
-                  padding: '.4rem',
-                  borderColor: emoji === e ? 'var(--dome-blue)' : undefined,
+                aria-label={`Ícone ${e}`}
+                style={{ minWidth: '3rem', padding: '.4rem' }}
+                disabled={salvando}
+                onClick={() => {
+                  setEmoji(e)
+                  void salvar({ emoji: e }, 'Ícone salvo.')
                 }}
-                onClick={() => setEmoji(e)}
               >
                 <span aria-hidden="true">{e}</span>
               </button>
@@ -143,7 +120,11 @@ export default function Perfil() {
                 type="button"
                 aria-pressed={cor === c}
                 aria-label={`Cor ${c}`}
-                onClick={() => setCor(c)}
+                disabled={salvando}
+                onClick={() => {
+                  setCor(c)
+                  void salvar({ cor: c }, 'Cor salva.')
+                }}
                 style={{
                   width: '2.75rem',
                   height: '2.75rem',
@@ -160,24 +141,41 @@ export default function Perfil() {
         </fieldset>
 
         {erro && <Erro>{erro}</Erro>}
-
-        <button type="button" className="botao botao--primario" onClick={() => void salvar()} disabled={salvando}>
-          {salvando ? 'Salvandoâ€¦' : 'Salvar'}
-        </button>
       </section>
 
       <section className="painel pilha" aria-labelledby="t-ranking">
         <h2 id="t-ranking" style={{ fontSize: '1.125rem' }}>
-          Ranking pÃºblico
+          Ranking público
         </h2>
-        <p>
-          {jogador.opt_in
-            ? 'VocÃª aparece no ranking com o apelido acima. Pode sair quando quiser â€” e sair vale tambÃ©m para a busca.'
-            : 'VocÃª nÃ£o aparece no ranking. Seus pontos continuam contando; apenas ninguÃ©m vÃª seu nome na lista.'}
-        </p>
-        <button type="button" className="botao botao--secundario" onClick={() => void alternarRanking()} disabled={salvando}>
-          {jogador.opt_in ? 'Sair do ranking' : 'Entrar no ranking'}
-        </button>
+
+        {jogador.opt_in ? (
+          <Nota tipo="atencao">
+            <b>Você está no ranking.</b>
+            Os outros participantes veem <strong>{nomeCurto(jogador.nome)}</strong>
+            {origem ? `, ${origem}` : ''} e seus pontos. Seu e-mail e seu nome completo não aparecem.
+          </Nota>
+        ) : (
+          <p className="prosa">
+            Você <strong>não</strong> aparece no ranking. Seus pontos e seu certificado contam
+            normalmente — o ranking é só a parte pública.
+          </p>
+        )}
+
+        <div className="acoes">
+          <button
+            type="button"
+            className={`botao ${jogador.opt_in ? 'botao--secundario' : 'botao--primario'}`}
+            disabled={salvando}
+            onClick={() =>
+              void salvar(
+                { opt_in: !jogador.opt_in },
+                jogador.opt_in ? 'Você saiu do ranking.' : 'Você entrou no ranking.',
+              )
+            }
+          >
+            {jogador.opt_in ? 'Sair do ranking' : 'Entrar no ranking'}
+          </button>
+        </div>
       </section>
 
       <section className="painel pilha" aria-labelledby="t-medalhas">
@@ -185,10 +183,10 @@ export default function Perfil() {
           Medalhas
         </h2>
         <GradeMedalhas atual={medalha} />
-        <ul className="pilha-2 meta" style={{ paddingLeft: '1.125rem', gap: '.25rem' }}>
+        <ul className="pilha-2 meta" style={{ paddingLeft: '1.125rem' }}>
           {Object.entries(MEDALHAS).map(([id, m]) => (
             <li key={id}>
-              <strong>{m.nome}</strong> â€” {m.comoGanhar}
+              <strong>{m.nome}</strong> — {m.comoGanhar}
             </li>
           ))}
         </ul>
@@ -199,13 +197,14 @@ export default function Perfil() {
           Sua conta
         </h2>
         <p className="meta">
-          VocÃª entrou como <strong>{jogador.email}</strong>.
+          Você entrou como <strong>{jogador.email}</strong>.
         </p>
-        <button type="button" className="botao botao--fantasma" onClick={sair}>
-          Sair deste dispositivo
-        </button>
+        <div className="acoes">
+          <button type="button" className="botao botao--fantasma" onClick={sair}>
+            Sair deste dispositivo
+          </button>
+        </div>
       </section>
     </div>
   )
 }
-

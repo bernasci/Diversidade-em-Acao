@@ -37,7 +37,7 @@ export default function Inicio() {
   const pct = percentual(progresso)
   const completas = missoesCompletas(progresso)
   const faltam = MISSOES.length - completas
-  const primeiroNome = (jogador.nome || jogador.apelido || '').split(' ')[0]
+  const primeiroNome = (jogador.nome || '').trim().split(/\s+/)[0]
   const proxima = MISSOES.find((m) => !missaoCompleta(progresso, m.id))
 
   return (

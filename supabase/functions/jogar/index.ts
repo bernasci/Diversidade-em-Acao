@@ -200,16 +200,15 @@ async function acaoBonus(sb: ReturnType<typeof admin>, jogador: Jogador) {
 }
 
 /* --------------------------------------------------------------- perfil --
-   Só campo cosmético. `pts`, `area` e `email` não aparecem na lista de
-   campos aceitos, e é por isso que não há como escrevê-los daqui. */
+   Só campo cosmético e a decisão sobre o ranking.
+
+   `nome`, `area` e `empresa` NÃO estão na lista de campos aceitos: eles vêm
+   da lista do RH e são reespelhados a cada acesso. É o que faz o ranking
+   dizer a verdade sobre quem é quem — se a pessoa pudesse editar o próprio
+   nome, a lista pública deixaria de valer como registro. */
 async function acaoPerfil(sb: ReturnType<typeof admin>, jogador: Jogador, corpo: Record<string, unknown>) {
   const mudanca: Record<string, unknown> = {}
 
-  if (typeof corpo.apelido === 'string') {
-    const a = corpo.apelido.trim().slice(0, 24)
-    if (a.length < 2) return erro('dados-invalidos', 'O apelido precisa ter pelo menos 2 caracteres.')
-    mudanca.apelido = a
-  }
   if (typeof corpo.emoji === 'string') mudanca.emoji = corpo.emoji.slice(0, 8)
   if (typeof corpo.cor === 'string' && /^#[0-9a-fA-F]{6}$/.test(corpo.cor)) mudanca.cor = corpo.cor
   if (typeof corpo.opt_in === 'boolean') mudanca.opt_in = corpo.opt_in

@@ -16,9 +16,21 @@ são flexíveis — não é preciso renomear nada:
 | Coluna | Nomes aceitos | Obrigatória |
 | --- | --- | --- |
 | E-mail | `email`, `e-mail`, `mail` | **sim** |
-| Nome | `nome`, `colaborador`, `nome completo` | não |
-| Área | `area`, `área`, `setor`, `departamento`, `lotação` | não |
+| Nome | `nome`, `colaborador`, `nome completo` | recomendada |
+| Área | `area`, `área`, `setor`, `departamento`, `lotação` | recomendada |
+| Empresa | `empresa`, `organização`, `companhia`, `cliente` | recomendada |
 | Matrícula | `matricula`, `matrícula`, `chapa`, `registro` | não |
+
+**Nome, área e empresa aparecem no ranking** de quem escolher participar — nessa ordem, com área e
+empresa em letra menor abaixo do nome. Se vierem em branco, a pessoa aparece só com o e-mail
+encurtado, o que fica pior para todo mundo. A coluna **empresa** existe porque o evento não é só da
+DOME: participam pessoas de outras empresas.
+
+Do nome completo, o ranking mostra só **primeiro nome + último sobrenome** — "Maria da Silva Santos
+Oliveira" vira "Maria Oliveira". O nome completo nunca sai do servidor.
+
+> **Corrigiu a lista depois?** Basta reimportar. Nome, área e empresa de quem já entrou são
+> atualizados no próximo acesso da pessoa.
 
 Veja `ferramentas/exemplo-lista.csv` para o formato.
 
@@ -110,7 +122,11 @@ Basta pedir ao técnico: são poucas linhas na função `entrar`, já escritas e
 
 - O **ranking é opcional e desligado por padrão**. Ninguém aparece sem ter marcado a opção no Perfil,
   e quem sair depois some também da busca.
-- O ranking mostra **apelido, área e pontos**. Nunca e-mail, nunca nome completo.
+- O ranking mostra **nome (primeiro + último sobrenome), área, empresa e pontos**. Nunca e-mail,
+  nunca nome completo, nunca matrícula.
+- A tela do Perfil lista, com todas as letras, o que fica visível antes de a pessoa decidir. Como o
+  ranking passou a mostrar **nome real** — e não mais um apelido —, vale mencionar isso na
+  comunicação de lançamento: a escolha é de cada um, mas ela precisa ser informada.
 - O certificado é gerado no próprio celular ou computador da pessoa e baixado como imagem. Não fica
   guardado em lugar nenhum.
 - As consultas do item 2 que trazem nome e e-mail (a de número 6) são para uso interno do RH.

@@ -14,9 +14,10 @@ export type Tarefa = 'jogo' | `quiz-${number}` | 'bonus'
 export interface Jogador {
   id: string
   email: string
+  /** Nome completo, como veio da lista do RH. O jogador não edita. */
   nome: string
-  apelido: string
   area: string | null
+  empresa: string | null
   emoji: string
   cor: string
   pts: number
@@ -57,8 +58,12 @@ export interface RespostaCredito {
 
 export interface LinhaRanking {
   posicao: number
-  apelido: string
+  /** Já vem encurtado pela view: primeiro nome + último sobrenome. */
+  nome: string
   area: string | null
+  empresa: string | null
+  emoji: string
+  cor: string
   pts: number
 }
 

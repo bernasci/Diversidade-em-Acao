@@ -1,6 +1,6 @@
-email;nome;area;matricula
-maria.silva@empresa.com.br;Maria Silva;Operações;10234
-joao.pereira@empresa.com.br;João Pereira;Manutenção;10235
-ana.souza@empresa.com.br;Ana Souza;Recursos Humanos;10236
-carlos.lima@empresa.com.br;Carlos Lima;Segurança do Trabalho;10237
-beatriz.rocha@empresa.com.br;Beatriz Rocha;Comercial;10238
+email;nome;area;empresa;matricula
+maria.silva@empresa.com.br;Maria Silva Oliveira;Operações;DOME;10234
+joao.pereira@empresa.com.br;João Pereira;Manutenção;DOME;10235
+ana.souza@parceira.com.br;Ana Souza Lima;Recursos Humanos;Prumo Logística;20431
+carlos.lima@parceira.com.br;Carlos Lima;Segurança do Trabalho;Gran Services;20432
+beatriz.rocha@empresa.com.br;Beatriz Rocha;Comercial;DOME;10238

@@ -1,13 +1,13 @@
-﻿/* ==========================================================================
-   Certificado.tsx â€” o fecho da jornada.
+/* ==========================================================================
+   Certificado.tsx — o fecho da jornada.
 
    Desenhado em <canvas> e baixado como PNG. Sem Supabase Storage, sem
    biblioteca de PDF, sem cota consumida: o arquivo nasce e morre no
    navegador da pessoa.
 
-   O canvas Ã© `aria-hidden`. Um leitor de tela nÃ£o lÃª pixel â€” entÃ£o o mesmo
-   conteÃºdo aparece logo abaixo em texto real, e Ã© ele que o leitor anuncia.
-   NÃ£o Ã© uma "versÃ£o alternativa": Ã© a mesma informaÃ§Ã£o, na forma que cada
+   O canvas é `aria-hidden`. Um leitor de tela não lê pixel — então o mesmo
+   conteúdo aparece logo abaixo em texto real, e é ele que o leitor anuncia.
+   Não é uma "versão alternativa": é a mesma informação, na forma que cada
    pessoa consegue receber.
    ========================================================================== */
 
@@ -55,11 +55,11 @@ export default function Certificado() {
     c.fillStyle = '#ffffff'
     c.font = 'bold 44px Sora, sans-serif'
     c.textAlign = 'center'
-    c.fillText('DIVERSIDADE EM AÃ‡ÃƒO', L / 2, 95)
+    c.fillText('DIVERSIDADE EM AÇÃO', L / 2, 95)
 
     c.fillStyle = '#5a6785'
     c.font = '28px Inter, sans-serif'
-    c.fillText('Certificado de conclusÃ£o', L / 2, 250)
+    c.fillText('Certificado de conclusão', L / 2, 250)
 
     c.fillStyle = '#141f3c'
     c.font = '26px Inter, sans-serif'
@@ -67,13 +67,13 @@ export default function Certificado() {
 
     c.fillStyle = '#001E62'
     c.font = 'bold 62px Sora, sans-serif'
-    c.fillText(jogador.nome || jogador.apelido, L / 2, 415)
+    c.fillText(jogador.nome, L / 2, 415)
 
     c.fillStyle = '#141f3c'
     c.font = '26px Inter, sans-serif'
     quebrarLinhas(
       c,
-      `concluiu as ${MISSOES.length} missÃµes da jornada sobre inclusÃ£o de Pessoas com DeficiÃªncia no mundo do trabalho, acertando ${acertos} das ${totalPerguntas} perguntas e somando ${jogador.pts} de ${PTS_MAX} pontos.`,
+      `concluiu as ${MISSOES.length} missões da jornada sobre inclusão de Pessoas com Deficiência no mundo do trabalho, acertando ${acertos} das ${totalPerguntas} perguntas e somando ${jogador.pts} de ${PTS_MAX} pontos.`,
       L / 2,
       480,
       L - 320,
@@ -90,7 +90,7 @@ export default function Certificado() {
     c.fillStyle = '#3d4a68'
     c.font = '20px Inter, sans-serif'
     MISSOES.forEach((m, i) => {
-      c.fillText(`${m.ordem} Â· ${m.tema}`, L / 2, 760 + i * 34)
+      c.fillText(`${m.ordem} · ${m.tema}`, L / 2, 760 + i * 34)
     })
 
     c.strokeStyle = '#dfe6f0'
@@ -113,7 +113,7 @@ export default function Certificado() {
     const cv = canvasRef.current
     if (!cv) return
     const a = document.createElement('a')
-    a.download = `certificado-diversidade-em-acao-${(jogador?.apelido ?? 'participante')
+    a.download = `certificado-diversidade-em-acao-${(jogador?.nome ?? 'participante')
       .toLowerCase()
       .replace(/[^a-z0-9]+/g, '-')}.png`
     a.href = cv.toDataURL('image/png')
@@ -129,13 +129,13 @@ export default function Certificado() {
         <h1>Certificado</h1>
         <div className="painel pilha">
           <p>
-            <strong>Ainda nÃ£o.</strong> Faltam <strong>{faltam}</strong>{' '}
-            {faltam === 1 ? 'missÃ£o' : 'missÃµes'} para o certificado ficar disponÃ­vel â€” cada missÃ£o exige
+            <strong>Ainda não.</strong> Faltam <strong>{faltam}</strong>{' '}
+            {faltam === 1 ? 'missão' : 'missões'} para o certificado ficar disponível — cada missão exige
             o jogo e as {PERGUNTAS_POR_MISSAO} perguntas.
           </p>
           <p>
             <Link className="botao botao--primario" to="/">
-              Ver o que falta â†’
+              Ver o que falta →
             </Link>
           </p>
         </div>
@@ -161,23 +161,23 @@ export default function Certificado() {
         </button>
       </div>
 
-      {/* A mesma informaÃ§Ã£o do canvas, em texto â€” para leitor de tela, para
-          copiar e colar, e para quem sÃ³ quer conferir os nÃºmeros. */}
+      {/* A mesma informação do canvas, em texto — para leitor de tela, para
+          copiar e colar, e para quem só quer conferir os números. */}
       <section className="painel pilha" aria-labelledby="t-texto">
         <h2 id="t-texto" style={{ fontSize: '1.125rem' }}>
-          ConteÃºdo do certificado
+          Conteúdo do certificado
         </h2>
         <p>
-          Certificamos que <strong>{jogador.nome || jogador.apelido}</strong> concluiu as {MISSOES.length}{' '}
-          missÃµes da jornada <strong>Diversidade em AÃ§Ã£o</strong>, sobre inclusÃ£o de Pessoas com
-          DeficiÃªncia no mundo do trabalho, acertando <strong>{acertos}</strong> das {totalPerguntas}{' '}
+          Certificamos que <strong>{jogador.nome}</strong> concluiu as {MISSOES.length}{' '}
+          missões da jornada <strong>Diversidade em Ação</strong>, sobre inclusão de Pessoas com
+          Deficiência no mundo do trabalho, acertando <strong>{acertos}</strong> das {totalPerguntas}{' '}
           perguntas e somando <strong>{jogador.pts}</strong> de {PTS_MAX} pontos.
           {medalha && <> Medalha de <strong>{MEDALHAS[medalha].nome}</strong>.</>} Emitido em {data}.
         </p>
         <ul>
           {MISSOES.map((m) => (
             <li key={m.id}>
-              {m.ordem} Â· {m.tema}
+              {m.ordem} · {m.tema}
             </li>
           ))}
         </ul>
@@ -186,7 +186,7 @@ export default function Certificado() {
   )
 }
 
-/** Quebra de linha centrada. O `fillText` do canvas nÃ£o quebra sozinho â€” sem
+/** Quebra de linha centrada. O `fillText` do canvas não quebra sozinho — sem
     isto, a frase do meio sai reta para fora da folha. */
 function quebrarLinhas(
   c: CanvasRenderingContext2D,

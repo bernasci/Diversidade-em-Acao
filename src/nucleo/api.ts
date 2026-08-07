@@ -118,13 +118,24 @@ export const concluirJogo = (missao: IdMissao, resultado: { acertos: number; tot
 export const pedirBonus = () =>
   chamar<RespostaCredito>('jogar', { acao: 'bonus' })
 
-export const salvarPerfil = (mudanca: { apelido?: string; emoji?: string; cor?: string; opt_in?: boolean }) =>
+export const salvarPerfil = (mudanca: { emoji?: string; cor?: string; opt_in?: boolean }) =>
   chamar<{ jogador: EstadoServidor['jogador'] }>('jogar', { acao: 'perfil', ...mudanca })
+
+/** Primeiro nome + último sobrenome, para caber numa linha. O ranking já
+    recebe assim da view; aqui é para as telas que têm o nome completo. */
+export function nomeCurto(nome: string): string {
+  const partes = String(nome ?? '')
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean)
+  if (partes.length <= 1) return partes[0] ?? ''
+  return `${partes[0]} ${partes[partes.length - 1]}`
+}
 
 /* ------------------------------- RANKING -------------------------------
    Leitura direta na view materializada. É o único endpoint do PostgREST
-   aberto ao `anon`, e ele expõe apelido, área e pontos de quem optou por
-   aparecer — nunca e-mail, nome completo ou id.
+   aberto ao `anon`, e ele expõe o nome já encurtado, área, empresa, avatar e
+   pontos de quem optou por aparecer — nunca e-mail, nome completo ou id.
 
    Sem polling: quem quiser ver de novo, recarrega. Com 5.602 pessoas, um
    `setInterval` de 15s como o do DOME GAMES estoura sozinho os 5 GB de
@@ -132,7 +143,7 @@ export const salvarPerfil = (mudanca: { apelido?: string; emoji?: string; cor?: 
    ------------------------------------------------------------------------ */
 export async function buscarRanking(limite = 100): Promise<LinhaRanking[]> {
   if (!CONFIGURADO) return []
-  const url = `${URL_BASE}/rest/v1/ranking_publico?select=posicao,apelido,area,pts&order=posicao.asc&limit=${limite}`
+  const url = `${URL_BASE}/rest/v1/ranking_publico?select=posicao,nome,area,empresa,emoji,cor,pts&order=posicao.asc&limit=${limite}`
   try {
     const r = await fetch(url, {
       headers: { apikey: ANON, authorization: `Bearer ${ANON}` },
