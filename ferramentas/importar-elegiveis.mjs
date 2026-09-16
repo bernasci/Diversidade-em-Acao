@@ -54,7 +54,7 @@ function separador(cabecalho) {
   return conta(';') > conta(',') ? ';' : ','
 }
 
-function analisar(texto) {
+function analisar(texto, empresaPadrao = null) {
   const limpo = texto.replace(/^﻿/, '')
   const linhas = limpo.split(/\r?\n/).filter((l) => l.trim() !== '')
   if (linhas.length === 0) return []
@@ -88,7 +88,13 @@ function analisar(texto) {
     h.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, ''),
   )
 
-  const acha = (...nomes) => cabecalho.findIndex((h) => nomes.includes(h))
+  /* Casa por PREFIXO, não por igualdade. A planilha que veio do RH em
+     setembro trazia "EMAIL_CORPORATIVO", e a lista de nomes exatos daqui não
+     pegava — o importador abortava com "não encontrei a coluna de e-mail"
+     numa planilha perfeitamente válida. Sufixo é o que o Excel do RH
+     acrescenta o tempo todo: _CORPORATIVO, _PESSOAL, " (novo)". */
+  const acha = (...nomes) =>
+    cabecalho.findIndex((h) => nomes.some((n) => h === n || h.startsWith(n + '_') || h.startsWith(n + ' ')))
   const iEmail = acha('email', 'e-mail', 'mail', 'e mail')
   const iNome = acha('nome', 'colaborador', 'nome completo')
   const iArea = acha('area', 'setor', 'departamento', 'lotacao')
@@ -115,13 +121,40 @@ function analisar(texto) {
     vistos.add(email)
     saida.push({
       email,
-      nome: iNome === -1 ? null : c[iNome] || null,
+      nome: iNome === -1 ? null : arrumarNome(c[iNome]) || null,
       area: iArea === -1 ? null : c[iArea] || null,
-      empresa: iEmpresa === -1 ? null : c[iEmpresa] || null,
+      empresa: (iEmpresa === -1 ? null : c[iEmpresa] || null) ?? empresaPadrao,
       matricula: iMat === -1 ? null : c[iMat] || null,
     })
   }
   return saida
+}
+
+/* --------------------------------- nome ----------------------------------
+   A lista do RH vem em CAIXA ALTA, porque folha de pagamento é assim. No
+   ranking e no certificado isso vira grito: "JOSE CARLOS DE SOUZA FILHO"
+   sobressai sobre todo o resto da linha sem que ninguém tenha pedido.
+
+   Só mexe em nome que está TODO em maiúsculas — quem já vier capitalizado
+   passa intacto, e é isso que evita estragar um "McDonald" ou um "de Sá" que
+   o RH tenha digitado certo.
+
+   As partículas descem: "DE SOUZA" vira "de Souza", nunca "De Souza". Não
+   sobem no começo do nome, onde "Da Silva" é sobrenome de verdade para
+   algumas pessoas — mas como o primeiro pedaço é sempre um prenome, na
+   prática o índice 0 nunca é partícula. */
+const PARTICULAS = new Set(['de', 'da', 'do', 'das', 'dos', 'e', 'di', 'du'])
+
+function arrumarNome(bruto) {
+  const n = String(bruto ?? '').trim()
+  if (!n || n !== n.toUpperCase()) return n
+  return n
+    .split(/\s+/)
+    .map((p, i) => {
+      const b = p.toLocaleLowerCase('pt-BR')
+      return i > 0 && PARTICULAS.has(b) ? b : b.charAt(0).toLocaleUpperCase('pt-BR') + b.slice(1)
+    })
+    .join(' ')
 }
 
 /* -------------------------------- envio ---------------------------------- */
@@ -140,12 +173,39 @@ async function enviar(url, chave, linhas) {
   if (!r.ok) throw new Error(`${r.status} ${r.statusText} — ${await r.text()}`)
 }
 
+/* ------------------------------- encoding --------------------------------
+   O Excel em português salva CSV em Windows-1252, não em UTF-8, e foi assim
+   que chegou a lista de setembro: "MANUTENÇÃO" gravado como um byte por
+   acento. Lido como UTF-8, vira "MANUTEN��O" — e entra assim no
+   banco, no ranking e no certificado.
+
+   A detecção é por tentativa: decodifica como UTF-8 recusando byte inválido
+   (`fatal: true`) e, se falhar, é Windows-1252. É o teste certo porque UTF-8
+   é auto-verificável — uma sequência latin-1 com acento quase nunca forma
+   UTF-8 válido, e um arquivo UTF-8 nunca falha aqui. */
+function lerTexto(caminho) {
+  const bytes = readFileSync(caminho)
+  try {
+    return new TextDecoder('utf-8', { fatal: true }).decode(bytes)
+  } catch {
+    console.log('  (arquivo em Windows-1252, convertido na leitura)')
+    return new TextDecoder('windows-1252').decode(bytes)
+  }
+}
+
 /* --------------------------------- main ---------------------------------- */
 const arquivo = process.argv[2]
 const simular = process.argv.includes('--simular')
 
+/* `--empresa DOME` preenche a coluna quando a planilha não traz nenhuma.
+   Necessário porque o banco, sem valor, DEDUZ a empresa do domínio do e-mail
+   (migration 006) — e nesta lista 431 das 554 pessoas usam e-mail pessoal.
+   Sem isto, o ranking público exibiria gente da "Gmail" e da "Hotmail". */
+const iEmp = process.argv.indexOf('--empresa')
+const empresaPadrao = iEmp !== -1 ? (process.argv[iEmp + 1] ?? null) : null
+
 if (!arquivo) {
-  console.error('Uso: node ferramentas/importar-elegiveis.mjs <arquivo.csv> [--simular]')
+  console.error('Uso: node ferramentas/importar-elegiveis.mjs <arquivo.csv> [--simular] [--empresa NOME]')
   process.exit(1)
 }
 
@@ -158,7 +218,7 @@ if (!URL || (!CHAVE && !simular)) {
   process.exit(1)
 }
 
-const linhas = analisar(readFileSync(resolve(arquivo), 'utf8'))
+const linhas = analisar(lerTexto(resolve(arquivo)), empresaPadrao)
 console.log(`Lidas ${linhas.length} pessoas de ${arquivo}.`)
 
 if (linhas.length === 0) {

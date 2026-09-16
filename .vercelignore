@@ -1,0 +1,32 @@
+# O que NÃO sobe para o build da Vercel.
+#
+# A primeira seção é a que importa: o `.env` desta pasta guarda a
+# service_role do Supabase e tokens de acesso pessoais. O CLI envia o
+# diretório do projeto como contexto de build, e o conteúdo enviado fica
+# visível na aba "Source" do deployment, para qualquer pessoa com acesso ao
+# painel. Nada disso é necessário para compilar o front: as duas variáveis
+# que o app usa de verdade são públicas e já vivem em `src/nucleo/projeto.ts`.
+.env
+.env.*
+
+# A LISTA DO RH, em qualquer formato. São 554 pessoas reais, com nome e
+# e-mail, e o `.gitignore` já as mantém fora do repositório pelo mesmo motivo
+# — o deploy não pode ser a porta dos fundos que o Git fechou. O conteúdo
+# enviado fica legível na aba "Source" do deployment para qualquer pessoa com
+# acesso ao projeto, e nada disso é necessário para compilar o front.
+*.csv
+*.xlsx
+
+# Nada aqui é usado pelo build do front.
+supabase/
+ferramentas/
+
+# Skills do editor e material de divulgação: megabytes que só existem na
+# máquina de quem desenvolve. O que o app serve está em `public/`.
+*.skill
+logo do evento/
+
+# Gerados: a Vercel roda `npm run build` e produz o seu próprio.
+dist/
+.vite/
+node_modules/

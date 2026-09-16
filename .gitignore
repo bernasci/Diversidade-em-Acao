@@ -15,6 +15,18 @@ supabase/.temp/
 # do projeto, mas aparecem na raiz e poluem o `git status`.
 *.skill
 
-# A lista do RH nunca entra no repositório: são 5.602 e-mails de pessoas reais.
+# A lista do RH nunca entra no repositório: são e-mails de pessoas reais.
+# Vale em qualquer pasta e com qualquer nome — a de setembro chegou como
+# "base dados.csv", na raiz, e passaria pelas duas linhas de baixo.
+*.csv
+*.xlsx
 ferramentas/lista*.csv
 ferramentas/*.xlsx
+
+.vercel
+.env*
+
+# Lixo do OneDrive e provas de renderização do certificado: aparecem sozinhos
+# na pasta e não são do projeto.
+desktop.ini
+certificado-previa.png
