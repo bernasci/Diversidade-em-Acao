@@ -5,7 +5,7 @@
 
      estado         →  { jogador, progresso }
      responder      →  { certo, resposta, explicacao, ja, pontos, total }
-     jogo-concluir  →  { ja, pontos, total }
+     jogo-concluir  →  { ja, pontos, total }   (recebe `missao` e `jogo`)
      bonus          →  { ja, pontos, total }
      perfil         →  { jogador }
 
@@ -32,18 +32,45 @@ import {
 
 const RECOMPENSA = { jogo: 10, acerto: 2, bonus: 20 } as const
 
-const MISSOES = ['m1', 'm2', 'm3', 'm4', 'm5'] as const
+const MISSOES = ['m1', 'm2', 'm3'] as const
 const PERGUNTAS_POR_MISSAO = 5
+
+/** Quais mini-games cada missão tem. Espelha `src/conteudo/missoes.ts`, e é
+    esta lista que decide quando a missão acabou — ou seja, quando o bônus
+    pode ser creditado. Divergir dela do app tem uma consequência só, e é
+    silenciosa: a jornada nunca fecha, porque o servidor fica esperando um
+    jogo que a tela não oferece mais.
+
+    Continua sendo uma LISTA, com um item cada, e não um campo único: o custo
+    é zero e o dia em que uma missão voltar a ter dois jogos não exige mexer
+    em `acaoBonus` nem no formato da tarefa. */
+const JOGOS_DA_MISSAO: Record<string, readonly string[]> = {
+  m1: ['memoria'],
+  m2: ['mito'],
+  m3: ['cenario'],
+}
 
 /** Quantas rodadas cada mini-game tem de verdade. Usado só para recusar
     resultado impossível — o mini-game vale presença, não nota. */
 const RODADAS_DO_JOGO: Record<string, number> = {
-  m1: 6, // memória: 6 pares
-  m2: 8, // ligar os pares: 8 situações
-  m3: 9, // quebra-cabeça: 9 peças
-  m4: 8, // mito ou fato: 8 cartas
-  m5: 4, // cenário: 4 situações
+  memoria: 6, // 6 pares
+  ligar: 8, // 8 situações
+  quebra: 9, // 9 peças
+  mito: 8, // 8 cartas
+  cenario: 4, // 4 situações
 }
+
+/** O nome da tarefa carrega o tipo do jogo porque uma missão tem mais de um:
+    com a tarefa chamada só `jogo`, o segundo bateria na constraint
+    `progresso_unico` e seria creditado como repetição do primeiro. Tem de
+    soletrar igual a `tarefaDoJogo`, em `src/nucleo/progresso.ts`. */
+const tarefaDoJogo = (tipo: string) => `jogo:${tipo}`
+
+/** As molduras válidas. Espelha `MOLDURAS` em `src/conteudo/avatares.ts` —
+    o que chegar fora desta lista é descartado em silêncio, junto com a
+    tentativa de gravar qualquer outra coisa na coluna. */
+const MOLDURAS = ['nenhuma', 'anel', 'duplo', 'solido', 'brilho', 'quadrado'] as const
+
 
 const eMissao = (v: unknown): v is (typeof MISSOES)[number] =>
   typeof v === 'string' && (MISSOES as readonly string[]).includes(v)
@@ -156,14 +183,19 @@ async function acaoJogoConcluir(sb: ReturnType<typeof admin>, jogador: Jogador, 
   const missao = corpo.missao
   if (!eMissao(missao)) return erro('dados-invalidos', 'Missão inválida.')
 
+  const jogo = String(corpo.jogo ?? '')
+  if (!JOGOS_DA_MISSAO[missao].includes(jogo)) {
+    return erro('dados-invalidos', 'Esse jogo não é dessa missão.')
+  }
+
   const r = (corpo.resultado ?? {}) as { acertos?: number; total?: number; segundos?: number }
-  const esperado = RODADAS_DO_JOGO[missao]
+  const esperado = RODADAS_DO_JOGO[jogo]
 
   if (Number(r.total) !== esperado) {
     return erro('dados-invalidos', 'Resultado do jogo não confere.')
   }
 
-  const c = await creditar(sb, jogador.id, missao, 'jogo', RECOMPENSA.jogo, {
+  const c = await creditar(sb, jogador.id, missao, tarefaDoJogo(jogo), RECOMPENSA.jogo, {
     acertos: Number(r.acertos) || 0,
     total: esperado,
     segundos: Number(r.segundos) || 0,
@@ -185,7 +217,7 @@ async function acaoBonus(sb: ReturnType<typeof admin>, jogador: Jogador) {
 
   const feito = new Set((linhas ?? []).map((l) => `${l.missao}/${l.tarefa}`))
   const completou = MISSOES.every((m) => {
-    if (!feito.has(`${m}/jogo`)) return false
+    for (const j of JOGOS_DA_MISSAO[m]) if (!feito.has(`${m}/${tarefaDoJogo(j)}`)) return false
     for (let i = 0; i < PERGUNTAS_POR_MISSAO; i++) if (!feito.has(`${m}/quiz-${i}`)) return false
     return true
   })
@@ -209,8 +241,15 @@ async function acaoBonus(sb: ReturnType<typeof admin>, jogador: Jogador) {
 async function acaoPerfil(sb: ReturnType<typeof admin>, jogador: Jogador, corpo: Record<string, unknown>) {
   const mudanca: Record<string, unknown> = {}
 
+  /* O `emoji` não é validado contra lista: além dos ícones do catálogo, ele
+     carrega o sentinela `@ini`, que quer dizer "desenhe as minhas iniciais" —
+     quem as calcula é a view do ranking (migration 008) e o app. O corte em 8
+     unidades UTF-16 é o que impede alguém de usar a coluna como campo livre. */
   if (typeof corpo.emoji === 'string') mudanca.emoji = corpo.emoji.slice(0, 8)
   if (typeof corpo.cor === 'string' && /^#[0-9a-fA-F]{6}$/.test(corpo.cor)) mudanca.cor = corpo.cor
+  if (typeof corpo.moldura === 'string' && (MOLDURAS as readonly string[]).includes(corpo.moldura)) {
+    mudanca.moldura = corpo.moldura
+  }
   if (typeof corpo.opt_in === 'boolean') mudanca.opt_in = corpo.opt_in
 
   if (Object.keys(mudanca).length === 0) return responder({ jogador })
@@ -224,9 +263,14 @@ async function acaoPerfil(sb: ReturnType<typeof admin>, jogador: Jogador, corpo:
 
   if (error || !data) return erro('desconhecido', 'Não conseguimos salvar seu perfil.', 500)
 
-  // Entrar ou sair do ranking precisa aparecer rápido; o resto pode esperar
-  // o ciclo normal de cinco minutos.
-  if ('opt_in' in mudanca) await sb.rpc('atualizar_ranking')
+  /* Entrar ou sair do ranking precisa aparecer rápido; o AVATAR também, e
+     pelo mesmo motivo que ele existe — a pessoa escolhe, vai olhar a lista e
+     quer se encontrar lá. Cor, ícone e moldura saem da view materializada, e
+     sem este refresh a escolha só apareceria no ciclo seguinte, até cinco
+     minutos depois, parecendo que não salvou. */
+  if ('opt_in' in mudanca || 'emoji' in mudanca || 'cor' in mudanca || 'moldura' in mudanca) {
+    await sb.rpc('atualizar_ranking')
+  }
 
   return responder({ jogador: data })
 }

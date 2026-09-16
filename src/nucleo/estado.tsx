@@ -88,7 +88,7 @@ export function ProvedorEstado({ children }: { children: ReactNode }) {
   )
 
   /* O bônus não é decidido pelo cliente: a Edge Function relê `progresso` e
-     confere as cinco missões. Aqui só perguntamos, depois de cada crédito.
+     confere as três missões. Aqui só perguntamos, depois de cada crédito.
      Se ela disser que não, ficamos quietos — não é erro do usuário. */
   useEffect(() => {
     if (!jogador || !tudoCompleto(progresso) || fezBonus(progresso)) return

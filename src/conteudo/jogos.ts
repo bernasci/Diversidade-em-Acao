@@ -1,5 +1,5 @@
 /* ==========================================================================
-   jogos.ts — conteúdo dos cinco mini-games.
+   jogos.ts — conteúdo dos cinco mini-games, distribuídos em três missões.
 
    POR QUE ISTO FICA NO CLIENTE, se o gabarito do quiz não fica:
 
@@ -19,10 +19,15 @@
    `jogo_gabarito` no banco e a Edge Function passa a servir as rodadas.
    ========================================================================== */
 
-/* ------------------------------------------------------------------ M1 --
+/* ------------------------------------------------------- M1 · ENTENDER --
    JOGO DA MEMÓRIA — seis pares conceito ↔ definição.
    Seis e não oito: no celular, 16 cartas viram rolagem, e rolagem em jogo da
    memória é o mesmo que esconder o tabuleiro.
+
+   Os pares são de VOCABULÁRIO, não de norma: três deles já foram "Lei de
+   Cotas", "LBI" e "Reabilitado do INSS", e saíram junto com o resto do
+   conteúdo jurídico. O que ficou é o que a pessoa precisa reconhecer numa
+   conversa de corredor.
    ---------------------------------------------------------------------- */
 export interface ParMemoria {
   id: string
@@ -42,33 +47,33 @@ export const PARES_MEMORIA: ParMemoria[] = [
     definicao: 'A barreira do ambiente é que gera a deficiência',
   },
   {
-    id: 'lei-cotas',
-    conceito: 'Lei de Cotas',
-    definicao: '2% a 5% das vagas em empresas com 100+',
+    id: 'termo',
+    conceito: 'Pessoa com deficiência',
+    definicao: 'O termo certo: a pessoa vem primeiro',
   },
   {
-    id: 'lbi',
-    conceito: 'LBI',
-    definicao: 'O Estatuto da Pessoa com Deficiência',
+    id: 'baixa-visao',
+    conceito: 'Baixa visão',
+    definicao: 'Enxerga pouco — não é cegueira total',
   },
   {
-    id: 'adaptacao',
-    conceito: 'Adaptação razoável',
-    definicao: 'O ajuste que iguala as condições de trabalho',
+    id: 'libras',
+    conceito: 'Libras',
+    definicao: 'A língua de sinais usada no Brasil',
   },
   {
-    id: 'assistiva',
-    conceito: 'Tecnologia assistiva',
-    definicao: 'Leitor de tela, teclado adaptado, lupa',
+    id: 'tea',
+    conceito: 'TEA',
+    definicao: 'O espectro autista, e ele também conta',
   },
   {
-    id: 'reabilitado',
-    conceito: 'Reabilitado do INSS',
-    definicao: 'Voltou ao trabalho e também conta na cota',
+    id: 'cao-guia',
+    conceito: 'Cão-guia',
+    definicao: 'Está trabalhando: não se chama nem se toca',
   },
 ]
 
-/* ------------------------------------------------------------------ M2 --
+/* ------------------------------------------------------- M1 · ENTENDER --
    LIGAR OS PARES — cada situação vai para o tipo de deficiência a que se
    refere. As situações são de trabalho, não de manual: é o que a pessoa
    encontra na segunda-feira.
@@ -143,7 +148,7 @@ export const FICHAS_LIGAR: FichaLigar[] = [
   },
 ]
 
-/* ------------------------------------------------------------------ M3 --
+/* ---------------------------------------------------- M2 · DESAPRENDER --
    QUEBRA-CABEÇA — nove peças que, na ordem certa, montam a leitura do posto
    de trabalho acessível: do chegar ao prédio até o crescer na empresa.
    A "imagem" é textual de propósito: quem usa leitor de tela monta o mesmo
@@ -167,7 +172,7 @@ export const PECAS_QUEBRA: PecaQuebra[] = [
   { id: 8, ico: '📈', texto: 'Plano de carreira e feedback como o de qualquer colega' },
 ]
 
-/* ------------------------------------------------------------------ M4 --
+/* ---------------------------------------------------- M2 · DESAPRENDER --
    MITO OU FATO — oito afirmações que circulam no corredor da empresa.
    ---------------------------------------------------------------------- */
 export interface CartaMito {
@@ -216,10 +221,10 @@ export const CARTAS_MITO: CartaMito[] = [
   },
   {
     id: 'c6',
-    texto: 'A empresa pode exigir aptidão física plena em qualquer processo seletivo.',
+    texto: 'Adaptação no trabalho só faz sentido para quem tem deficiência visível.',
     fato: false,
     explicacao:
-      'Mito. A LBI proíbe. O critério legítimo é a aptidão para as atividades reais da vaga, com as adaptações necessárias.',
+      'Mito. Boa parte das deficiências não se vê — auditiva, intelectual, psicossocial — e o ajuste que elas pedem costuma ser de processo, não de obra: instrução escrita, aviso antecipado, ruído menor.',
   },
   {
     id: 'c7',
@@ -237,7 +242,7 @@ export const CARTAS_MITO: CartaMito[] = [
   },
 ]
 
-/* ------------------------------------------------------------------ M5 --
+/* ----------------------------------------------------------- M3 · AGIR --
    SIMULAÇÃO DE CENÁRIO — quatro decisões, três caminhos cada.
    Nenhuma opção é caricata: as erradas são as que a gente vê acontecer com
    boa intenção, e é isso que faz o feedback valer.
@@ -278,7 +283,7 @@ export const CENAS: Cena[] = [
         texto: 'Oferecer a ela outra vaga, sem viagens, para evitar desgaste.',
         nota: 'ruim',
         desdobramento:
-          'Isso é rebaixar a candidata mais qualificada por uma suposição. A decisão sobre o que ela dá conta é dela — e a lei chama isso de discriminação.',
+          'Isso é rebaixar a candidata mais qualificada por uma suposição. A decisão sobre o que ela dá conta é dela, e ninguém mais tem como tomá-la.',
       },
     ],
   },
@@ -350,13 +355,13 @@ export const CENAS: Cena[] = [
         texto: 'Promover para mostrar o compromisso da empresa com a diversidade.',
         nota: 'mediana',
         desdobramento:
-          'A pessoa certa pela razão errada. Promover pela deficiência, e não pelo desempenho, entrega a ela um cargo que todo mundo vai atribuir à cota.',
+          'A pessoa certa pela razão errada. Promover pela deficiência, e não pelo desempenho, entrega a ela um cargo que todo mundo vai atribuir ao discurso de diversidade — inclusive ela.',
       },
       {
         texto: 'Sugerir que ela espere o próximo ciclo, para se preparar melhor.',
         nota: 'ruim',
         desdobramento:
-          'Esse "próximo ciclo" costuma não chegar. É assim que a rotatividade acontece: a pessoa entra pela cota, não cresce e vai embora.',
+          'Esse "próximo ciclo" costuma não chegar. É assim que a rotatividade acontece: a pessoa entra, não cresce e vai embora.',
       },
     ],
   },

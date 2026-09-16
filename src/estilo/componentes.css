@@ -103,9 +103,15 @@
 /* Controle segmentado das etapas da missão. Três rótulos curtos, sempre em
    fila: empilhados em largura total, gastavam meia tela de celular antes de
    qualquer conteúdo aparecer. */
+/* AUTO-FIT, e não `repeat(3, 1fr)` como era. A missão tinha três etapas
+   fixas — aprender, jogo, quiz — e passou a ter quatro quando uma missão
+   ganhou dois mini-games. Com três colunas fixas, o quarto botão caía sozinho
+   numa segunda linha, ocupando um terço da largura e parecendo um erro de
+   renderização. Assim eles se distribuem: quatro em linha no desktop, dois e
+   dois no celular. */
 .etapas {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(auto-fit, minmax(6rem, 1fr));
   gap: var(--e-1);
   padding: var(--e-1);
   border-radius: var(--r);
@@ -924,18 +930,6 @@
   font-weight: 600;
   min-width: 0;
 }
-/* O avatar dá rosto à lista sem expor nada: emoji e cor são escolha da
-   própria pessoa, não dado do RH. */
-.tabela .col-nome__avatar {
-  flex: none;
-  display: grid;
-  place-items: center;
-  width: 1.75rem;
-  height: 1.75rem;
-  border-radius: 50%;
-  font-size: 0.9375rem;
-  line-height: 1;
-}
 .tabela .col-pts {
   grid-row: span 2;
   font-variant-numeric: tabular-nums;
@@ -1020,4 +1014,317 @@
 }
 .vazio__ico {
   font-size: 1.75rem;
+}
+
+/* ------------------------------------------------------------------ PERFIL
+   A tela de perfil era a única do app escrita com estilo inline — largura,
+   cor e tamanho de fonte no meio do JSX. Isso a deixava de fora de tudo que
+   os tokens governam de uma vez: o tema de alto contraste, o ajuste de
+   tamanho de texto do sistema e o `prefers-reduced-motion`. Um `style` não
+   responde a media query.
+   -------------------------------------------------------------------------- */
+
+/* O avatar é um só componente visual em dois tamanhos. `--avatar-tam` é a
+   única coisa que muda entre o retrato do perfil e a linha do ranking — daí
+   ele ser variável, e não duas regras copiadas que divergem na primeira
+   moldura nova. */
+.avatar {
+  --avatar-tam: 4rem;
+  --avatar-cor: var(--azul);
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: var(--avatar-tam);
+  height: var(--avatar-tam);
+  border-radius: 50%;
+  font-size: calc(var(--avatar-tam) * 0.5);
+  line-height: 1;
+  /* O conteúdo é uma coisa só, centrada: sem isto, duas letras herdam o
+     espaçamento do parágrafo e descem meio pixel em relação ao emoji. */
+  text-align: center;
+}
+.avatar--mini {
+  --avatar-tam: 1.75rem;
+}
+
+/* INICIAIS pedem corpo menor e negrito. Duas maiúsculas ocupando metade do
+   diâmetro, que é a medida certa para um emoji, encostam na borda dos dois
+   lados — e a 1,75rem no ranking elas transbordam. */
+.avatar--texto {
+  font-size: calc(var(--avatar-tam) * 0.36);
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+/* --------------------------------------------------------------- MOLDURAS
+   Decoração pura: nenhuma carrega informação, então nada se perde para quem
+   não as distingue.
+
+   Feitas com `box-shadow` e não com `border` de propósito — borda entra na
+   caixa e encolheria o círculo, obrigando cada moldura a recalcular o
+   tamanho. Sombra desenha por fora e não move nada.
+
+   Todas foram medidas a 1,75rem, que é o tamanho no ranking: uma moldura que
+   só aparece no perfil é uma escolha que não existe onde ela importa. Foi o
+   que descartou o tracejado fino, que a 28px vira uma linha cinza.
+   -------------------------------------------------------------------------- */
+.avatar--anel {
+  box-shadow: 0 0 0 2px var(--superficie), 0 0 0 4px var(--avatar-cor);
+}
+.avatar--duplo {
+  box-shadow:
+    0 0 0 2px var(--superficie),
+    0 0 0 3px var(--avatar-cor),
+    0 0 0 5px var(--superficie),
+    0 0 0 6px var(--avatar-cor);
+}
+.avatar--solido {
+  box-shadow: 0 0 0 3px var(--ink);
+}
+.avatar--brilho {
+  box-shadow: 0 0 10px 2px var(--avatar-cor);
+}
+.avatar--quadrado {
+  border-radius: 30%;
+}
+
+/* Dentro do painel claro o vão do anel é branco; sobre a linha destacada do
+   ranking — a do "você", que tem fundo ciano — o branco viraria um risco. */
+.tabela tr[data-eu='sim'] .avatar--anel,
+.tabela tr[data-eu='sim'] .avatar--duplo {
+  --superficie: var(--ciano-fraco);
+}
+
+.perfil__identidade {
+  display: flex;
+  align-items: center;
+  gap: var(--e-3);
+}
+.perfil__quem {
+  min-width: 0; /* sem isto o nome longo empurra o avatar para fora do painel */
+}
+.perfil__nome {
+  font-weight: 700;
+  font-size: var(--t-md);
+  color: var(--navy);
+}
+
+/* Título de bloco dentro de um painel: menor que o h2 de seção, porque aqui
+   ele nomeia um cartão e não uma parte da tela. */
+.painel__titulo {
+  font-size: var(--t-md);
+}
+
+.campo {
+  border: 0;
+  padding: 0;
+  margin: 0;
+  min-width: 0; /* fieldset não encolhe sem isto, e a grade estoura no celular */
+}
+.campo__legenda {
+  font-weight: 600;
+  font-size: var(--t-sm);
+  color: var(--ink-2);
+  margin-bottom: var(--e-2);
+}
+
+/* GRADE, não `.linha`. Com trinta ícones, o flex-wrap deixava a última fila
+   com dois itens esticados e o alinhamento vertical perdido entre os grupos.
+   `auto-fill` mantém a coluna do mesmo tamanho em todos os grupos. */
+.opcoes {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(2.75rem, 1fr));
+  gap: var(--e-2);
+}
+.opcao-avatar {
+  display: grid;
+  place-items: center;
+  aspect-ratio: 1;
+  font-size: 1.25rem;
+  line-height: 1;
+  border: 1px solid var(--linha);
+  border-radius: var(--r-sm);
+  background: var(--superficie);
+  cursor: pointer;
+  transition: transform var(--rapido) var(--ease), border-color var(--rapido) var(--ease);
+}
+.opcao-avatar:hover:not(:disabled) {
+  border-color: var(--linha-forte);
+  transform: translateY(-1px);
+}
+.opcao-avatar[aria-pressed='true'] {
+  border-color: var(--azul);
+  box-shadow: inset 0 0 0 2px var(--azul);
+  background: var(--ciano-fraco);
+}
+.opcao-avatar:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+
+.cores {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(2.75rem, 1fr));
+  gap: var(--e-2);
+}
+/* O marcador de selecionado é um "✓" DESENHADO POR CIMA da cor, e a cor dele
+   vem de `corDeContraste` em avatares.ts. Uma borda escura sozinha não serve:
+   ela é a mesma informação que a cor, e some para quem não distingue as duas.
+   O ✓ é forma, não matiz. */
+.cor {
+  display: grid;
+  place-items: center;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  border: 1px solid rgba(16, 26, 51, 0.25);
+  font-size: 1.125rem;
+  font-weight: 700;
+  line-height: 1;
+  cursor: pointer;
+  transition: transform var(--rapido) var(--ease);
+}
+.cor:hover:not(:disabled) {
+  transform: scale(1.06);
+}
+.cor[aria-pressed='true'] {
+  box-shadow: 0 0 0 3px var(--superficie), 0 0 0 5px var(--ink);
+}
+.cor:disabled {
+  cursor: default;
+}
+
+/* A PRÉVIA repete a linha do ranking com os mesmos ingredientes — avatar,
+   nome curto, área · empresa, pontos. Existe porque a escolha do avatar só
+   faz sentido no lugar onde ele vai ser visto, e esse lugar é uma lista onde
+   o círculo tem 1,75rem, não os 4rem do retrato acima. */
+.previa {
+  display: flex;
+  align-items: center;
+  gap: var(--e-2);
+  padding: var(--e-3);
+  border: 1px solid var(--linha);
+  border-radius: var(--r);
+  background: var(--superficie-2);
+}
+.previa__quem {
+  min-width: 0;
+  flex: 1;
+}
+.previa__nome {
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.previa__origem {
+  display: block;
+}
+.previa__pts {
+  flex: none;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--azul);
+}
+
+/* A lista de "como se ganha cada medalha" é uma lista de verdade — com
+   marcador — porque enumera regras, e o recuo é o do marcador. */
+.lista-medalhas {
+  padding-left: 1.125rem;
+}
+
+/* Os sete grupos de ícones, como pastilhas. Não é `.etapas`: ali são etapas
+   de uma tarefa, com ordem e progresso; aqui são categorias equivalentes,
+   sem ordem, e o que a pessoa faz é filtrar — não avançar. */
+.grupos {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--e-1);
+}
+.grupos button {
+  min-height: 2.25rem;
+  padding: var(--e-1) var(--e-3);
+  border: 1px solid var(--linha);
+  border-radius: var(--r-full);
+  background: var(--superficie);
+  color: var(--ink-2);
+  font-size: var(--t-sm);
+  font-weight: 600;
+  cursor: pointer;
+  transition: background var(--rapido) var(--ease), border-color var(--rapido) var(--ease);
+}
+.grupos button:hover {
+  border-color: var(--linha-forte);
+}
+.grupos button[aria-pressed='true'] {
+  background: var(--navy);
+  border-color: var(--navy);
+  color: #fff;
+}
+
+/* A opção "minhas iniciais" é larga e fica sozinha acima da grade: ela não é
+   mais um ícone entre oitenta e quatro, é a outra resposta possível para a
+   mesma pergunta. Enfileirá-la com os emojis a esconderia. */
+.opcao-iniciais {
+  display: flex;
+  align-items: center;
+  gap: var(--e-3);
+  width: 100%;
+  padding: var(--e-2) var(--e-3);
+  border: 1px solid var(--linha);
+  border-radius: var(--r);
+  background: var(--superficie);
+  color: var(--ink-2);
+  font-size: var(--t-sm);
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color var(--rapido) var(--ease);
+}
+.opcao-iniciais:hover:not(:disabled) {
+  border-color: var(--linha-forte);
+}
+.opcao-iniciais[aria-pressed='true'] {
+  border-color: var(--azul);
+  box-shadow: inset 0 0 0 2px var(--azul);
+  background: var(--ciano-fraco);
+}
+.opcao-iniciais:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+
+/* As molduras se escolhem vendo, não lendo: cada botão é o próprio avatar
+   com aquela moldura aplicada. O nome vai embaixo porque a diferença entre
+   "anel" e "anel duplo" é visual, e um rótulo sozinho não a comunica. */
+.molduras {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(4.5rem, 1fr));
+  gap: var(--e-2);
+}
+.moldura-opcao {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--e-2);
+  padding: var(--e-3) var(--e-1);
+  border: 1px solid var(--linha);
+  border-radius: var(--r);
+  background: var(--superficie);
+  color: var(--ink-3);
+  font-size: var(--t-xs);
+  font-weight: 600;
+  cursor: pointer;
+  transition: border-color var(--rapido) var(--ease);
+}
+.moldura-opcao:hover:not(:disabled) {
+  border-color: var(--linha-forte);
+}
+.moldura-opcao[aria-pressed='true'] {
+  border-color: var(--azul);
+  box-shadow: inset 0 0 0 2px var(--azul);
+  color: var(--navy);
+}
+.moldura-opcao:disabled {
+  opacity: 0.55;
+  cursor: default;
 }

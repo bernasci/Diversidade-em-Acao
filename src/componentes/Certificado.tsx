@@ -1,9 +1,21 @@
 /* ==========================================================================
-   Certificado.tsx — o certificado, agora como bloco e não como tela.
+   Certificado.tsx — o certificado, na marca do evento.
 
    Desenhado em <canvas> e baixado como PNG. Sem Supabase Storage, sem
    biblioteca de PDF, sem cota consumida: o arquivo nasce e morre no navegador
    da pessoa.
+
+   O DESENHO EM SI mora em `certificado-desenho.ts`, como função pura — é o
+   que permite abrir a folha num navegador sem login para conferir o layout.
+   Aqui fica só o que é do React: o jogador, a imagem, o canvas e o texto.
+
+   A MARCA É A DO EVENTO, não a do app. O coração é o arquivo original
+   recortado (`public/coracao.png`), e não um coração redesenhado a olho: a
+   silhueta é particular, com lobos largos e um entalhe raso, e reproduzi-la
+   com bezier sairia "quase". A versão anterior do certificado era uma faixa
+   navy com moldura ciano, herdada do app; a marca do evento é o oposto —
+   branco, preto e uma cor —, e a folha passou a obedecer a ela. O navy ficou
+   só no nome da pessoa e na assinatura, que é onde a DOME entra.
 
    O canvas é `aria-hidden`. Leitor de tela não lê pixel — então o mesmo
    conteúdo aparece logo abaixo em texto real, e é ele que o leitor anuncia.
@@ -16,93 +28,62 @@
    RH tira a lista para reconhecimento (ver `supabase/consultas.sql`).
    ========================================================================== */
 
-import { useCallback, useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useEstado } from '../nucleo/estado'
-import { MISSOES, PERGUNTAS_POR_MISSAO, PTS_MAX } from '../conteudo/missoes'
+import { MISSOES, PTS_MAX, TOTAL_PERGUNTAS } from '../conteudo/missoes'
 import { acertosTotais, medalhaDe, MEDALHAS } from '../nucleo/progresso'
+import { A, desenharCertificado, L } from './certificado-desenho'
+import type { Medalha } from '../nucleo/tipos'
 
-const L = 1600
-const A = 1100
+/** As mesmas quatro cores de `tokens.css`. Aqui elas não podem vir da
+    variável CSS: o canvas não resolve `var(--ouro)`. */
+const COR_MEDALHA: Record<Medalha, string> = {
+  bronze: '#A1622C',
+  prata: '#6B7A8D',
+  ouro: '#96700F',
+  platina: '#0E6A7D',
+}
 
 export default function Certificado() {
   const { jogador, progresso } = useEstado()
   const canvasRef = useRef<HTMLCanvasElement>(null)
+  const [coracao, setCoracao] = useState<HTMLImageElement | null>(null)
+  const [dome, setDome] = useState<HTMLImageElement | null>(null)
 
   const medalha = medalhaDe(progresso)
   const acertos = acertosTotais(progresso)
-  const totalPerguntas = MISSOES.length * PERGUNTAS_POR_MISSAO
   const data = new Date().toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' })
 
-  const desenhar = useCallback(() => {
-    const cv = canvasRef.current
-    if (!cv || !jogador) return
-    const c = cv.getContext('2d')
-    if (!c) return
-
-    c.fillStyle = '#ffffff'
-    c.fillRect(0, 0, L, A)
-
-    c.fillStyle = '#001E62'
-    c.fillRect(0, 0, L, 150)
-    c.strokeStyle = '#00BBDC'
-    c.lineWidth = 8
-    c.strokeRect(30, 30, L - 60, A - 60)
-
-    c.fillStyle = '#ffffff'
-    c.font = 'bold 44px Inter, sans-serif'
-    c.textAlign = 'center'
-    c.fillText('DIVERSIDADE EM AÇÃO', L / 2, 95)
-
-    c.fillStyle = '#5a6785'
-    c.font = '28px Inter, sans-serif'
-    c.fillText('Certificado de conclusão', L / 2, 250)
-
-    c.fillStyle = '#141f3c'
-    c.font = '26px Inter, sans-serif'
-    c.fillText('Certificamos que', L / 2, 330)
-
-    c.fillStyle = '#001E62'
-    c.font = 'bold 62px Inter, sans-serif'
-    c.fillText(jogador.nome, L / 2, 415)
-
-    c.fillStyle = '#141f3c'
-    c.font = '26px Inter, sans-serif'
-    quebrarLinhas(
-      c,
-      `concluiu as ${MISSOES.length} missões da jornada sobre inclusão de Pessoas com Deficiência no mundo do trabalho, acertando ${acertos} das ${totalPerguntas} perguntas e somando ${jogador.pts} de ${PTS_MAX} pontos.`,
-      L / 2,
-      480,
-      L - 320,
-      42,
-    )
-
-    if (medalha) {
-      c.fillStyle = '#001E62'
-      c.font = 'bold 34px Inter, sans-serif'
-      c.fillText(`Medalha de ${MEDALHAS[medalha].nome}`, L / 2, 690)
+  /* As duas imagens da folha entram por <img>, uma vez cada. Enquanto não
+     chegam, o resto é desenhado assim mesmo — melhor um certificado sem o
+     símbolo do que um retângulo branco, se a rede falhar no meio. Cada uma
+     redesenha a folha ao chegar, e a ordem entre elas não importa. */
+  useEffect(() => {
+    const carregar = (src: string, guardar: (i: HTMLImageElement) => void) => {
+      const img = new Image()
+      img.src = src
+      img.onload = () => guardar(img)
+      return img
     }
+    const a = carregar('/coracao.png', setCoracao)
+    const b = carregar('/dome-cor.png', setDome)
+    return () => {
+      a.onload = null
+      b.onload = null
+    }
+  }, [])
 
-    c.fillStyle = '#3d4a68'
-    c.font = '20px Inter, sans-serif'
-    MISSOES.forEach((m, i) => {
-      c.fillText(`${m.ordem} · ${m.nome} — ${m.tema}`, L / 2, 760 + i * 34)
-    })
-
-    c.strokeStyle = '#dfe6f0'
-    c.lineWidth = 2
-    c.beginPath()
-    c.moveTo(L / 2 - 260, A - 130)
-    c.lineTo(L / 2 + 260, A - 130)
-    c.stroke()
-
-    c.fillStyle = '#5a6785'
-    c.font = '22px Inter, sans-serif'
-    c.fillText(data, L / 2, A - 90)
-  }, [jogador, medalha, acertos, totalPerguntas, data])
+  const nome = jogador?.nome ?? ''
+  const pts = jogador?.pts ?? 0
+  const selo = medalha ? { nome: MEDALHAS[medalha].nome, cor: COR_MEDALHA[medalha] } : null
 
   useEffect(() => {
-    desenhar()
-  }, [desenhar])
+    const c = canvasRef.current?.getContext('2d')
+    if (!c || !nome) return
+    void desenharCertificado(c, { nome, pts, acertos, medalha: selo, data }, { coracao, dome })
+    // `selo` é recriado a cada render; a dependência é a medalha que o gerou.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [nome, pts, acertos, medalha, data, coracao, dome])
 
   if (!jogador) return null
 
@@ -145,7 +126,7 @@ export default function Certificado() {
         <p>
           Certificamos que <strong>{jogador.nome}</strong> concluiu as {MISSOES.length} missões da
           jornada <strong>Diversidade em Ação</strong>, sobre inclusão de Pessoas com Deficiência no
-          mundo do trabalho, acertando <strong>{acertos}</strong> das {totalPerguntas} perguntas e
+          mundo do trabalho, acertando <strong>{acertos}</strong> das {TOTAL_PERGUNTAS} perguntas e
           somando <strong>{jogador.pts}</strong> de {PTS_MAX} pontos.
           {medalha && (
             <>
@@ -153,35 +134,9 @@ export default function Certificado() {
               Medalha de <strong>{MEDALHAS[medalha].nome}</strong>.
             </>
           )}{' '}
-          Emitido em {data}.
+          Emitido em {data}, na Semana da Diversidade, Equidade &amp; Inclusão da DOME.
         </p>
       </details>
     </div>
   )
-}
-
-/** Quebra de linha centrada. O `fillText` do canvas não quebra sozinho — sem
-    isto, a frase do meio sai reta para fora da folha. */
-function quebrarLinhas(
-  c: CanvasRenderingContext2D,
-  texto: string,
-  x: number,
-  y: number,
-  largura: number,
-  alturaLinha: number,
-) {
-  const palavras = texto.split(' ')
-  let linha = ''
-  let yAtual = y
-  for (const p of palavras) {
-    const teste = linha ? `${linha} ${p}` : p
-    if (c.measureText(teste).width > largura && linha) {
-      c.fillText(linha, x, yAtual)
-      linha = p
-      yAtual += alturaLinha
-    } else {
-      linha = teste
-    }
-  }
-  if (linha) c.fillText(linha, x, yAtual)
 }

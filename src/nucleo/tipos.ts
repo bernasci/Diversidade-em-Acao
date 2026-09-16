@@ -6,10 +6,18 @@
    são os mesmos de propósito: quando divergirem, é para doer na leitura.
    ========================================================================== */
 
-export type IdMissao = 'm1' | 'm2' | 'm3' | 'm4' | 'm5'
+export type IdMissao = 'm1' | 'm2' | 'm3'
 
-/** `jogo` = mini-game da missão · `quiz-0`…`quiz-4` = perguntas · `bonus` = fecho. */
-export type Tarefa = 'jogo' | `quiz-${number}` | 'bonus'
+/**
+ * `jogo:memoria`… = um mini-game da missão · `quiz-0`…`quiz-4` = perguntas ·
+ * `bonus` = fecho.
+ *
+ * A tarefa do jogo carrega o TIPO no nome porque uma missão passou a ter mais
+ * de um mini-game: com a tarefa chamada só `jogo`, o segundo jogo da missão
+ * bateria na constraint `progresso_unico` e seria creditado como repetição do
+ * primeiro.
+ */
+export type Tarefa = `jogo:${string}` | `quiz-${number}` | 'bonus'
 
 export interface Jogador {
   id: string
@@ -20,6 +28,8 @@ export interface Jogador {
   empresa: string | null
   emoji: string
   cor: string
+  /** Decoração em volta do avatar. Ver `MOLDURAS` em `conteudo/avatares.ts`. */
+  moldura: string
   pts: number
   opt_in: boolean
 }
@@ -62,8 +72,10 @@ export interface LinhaRanking {
   nome: string
   area: string | null
   empresa: string | null
+  /** Já vem resolvido pela view: quem escolheu iniciais recebe as letras. */
   emoji: string
   cor: string
+  moldura: string
   pts: number
 }
 

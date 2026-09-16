@@ -100,15 +100,31 @@ ok((await comoAnon('ranking_publico?select=*&limit=1')).status === 200, 'ranking
 /* -------------------------------------------------------------- preparo -- */
 console.log('\n--- preparo ---')
 await limpar() // resíduo de uma execução interrompida
-await rest('elegiveis', {
+
+/* AS DUAS LINHAS PRECISAM TER AS MESMAS CHAVES. O PostgREST recusa um lote
+   com objetos de formato diferente — `PGRST102: All object keys must match` —
+   e é por isso que a segunda traz `nome` e `empresa` como null explícito em
+   vez de omiti-los. O efeito no banco é o mesmo: null é o que dispara a
+   dedução a partir do e-mail (migration 006). */
+const preparo = await rest('elegiveis', {
   method: 'POST',
   headers: { prefer: 'resolution=merge-duplicates,return=minimal' },
   body: JSON.stringify([
     { email: EMAIL, nome: 'Ana Descartavel de Testes', area: 'Testes', empresa: 'QA Ltda', matricula: '9999' },
     // sem nome e sem empresa: o banco tem de deduzir os dois
-    { email: EMAIL_DEDUZIDO, area: 'Testes' },
+    { email: EMAIL_DEDUZIDO, nome: null, area: 'Testes', empresa: null, matricula: null },
   ]),
 })
+
+/* Antes esta resposta era ignorada, e um preparo que falhava produzia doze
+   FALHAS enganosas mais um OK falso — "apelido NÃO chega ao app" passa
+   sozinho quando o `entrar` devolveu 403 e não há jogador nenhum. Setup que
+   falha tem de parar o teste, não virar relatório. */
+if (!preparo.ok) {
+  console.error(`
+  Não foi possível criar os elegíveis de QA: ${preparo.status} ${await preparo.text()}`)
+  process.exit(1)
+}
 console.log('  elegíveis de QA criados')
 
 try {
@@ -167,13 +183,23 @@ try {
 
   /* ------------------------------------------------------------ mini-game -- */
   console.log('\n--- mini-game ---')
-  const j1 = await fn('jogar', { acao: 'jogo-concluir', missao: 'm1', resultado: { acertos: 6, total: 6, segundos: 42 } }, T)
+  const j1 = await fn('jogar', { acao: 'jogo-concluir', missao: 'm1', jogo: 'memoria', resultado: { acertos: 6, total: 6, segundos: 42 } }, T)
   ok(j1.d?.pontos === 10, 'mini-game vale 10', String(j1.d?.pontos))
   ok(j1.d?.total === 12, 'total = 12', String(j1.d?.total))
 
-  const j2 = await fn('jogar', { acao: 'jogo-concluir', missao: 'm1', resultado: { acertos: 6, total: 6, segundos: 9 } }, T)
+  const j2 = await fn('jogar', { acao: 'jogo-concluir', missao: 'm1', jogo: 'memoria', resultado: { acertos: 6, total: 6, segundos: 9 } }, T)
   ok(j2.d?.ja === true && j2.d?.pontos === 0, 'concluir de novo não credita')
-  ok((await fn('jogar', { acao: 'jogo-concluir', missao: 'm2', resultado: { acertos: 3, total: 3 } }, T)).status === 400, 'resultado com tamanho errado é recusado')
+
+  ok((await fn('jogar', { acao: 'jogo-concluir', missao: 'm2', jogo: 'mito', resultado: { acertos: 3, total: 3 } }, T)).status === 400, 'resultado com tamanho errado é recusado')
+  ok((await fn('jogar', { acao: 'jogo-concluir', missao: 'm3', jogo: 'memoria', resultado: { acertos: 6, total: 6 } }, T)).status === 400, 'jogo de outra missão é recusado')
+
+  /* "Ligar os pares" e "Quebra-cabeça" saíram da trilha. Os componentes
+     continuam no repositório, mas o servidor não os reconhece mais como jogo
+     de missão nenhuma — e é isso que impede um cliente desatualizado, ou um
+     curioso com o DevTools, de creditar 10 pontos por um jogo que a trilha
+     não oferece. */
+  ok((await fn('jogar', { acao: 'jogo-concluir', missao: 'm1', jogo: 'ligar', resultado: { acertos: 8, total: 8 } }, T)).status === 400, 'jogo fora da trilha é recusado (ligar)')
+  ok((await fn('jogar', { acao: 'jogo-concluir', missao: 'm2', jogo: 'quebra', resultado: { acertos: 9, total: 9 } }, T)).status === 400, 'jogo fora da trilha é recusado (quebra)')
 
   /* ---------------------------------------------------------------- bônus -- */
   console.log('\n--- bônus ---')
@@ -186,6 +212,21 @@ try {
   const p1 = await fn('jogar', { acao: 'perfil', emoji: '🚀', cor: '#00BBDC', opt_in: true }, T)
   ok(p1.d?.jogador?.emoji === '🚀', 'avatar salvo')
   ok(p1.d?.jogador?.opt_in === true, 'entrou no ranking')
+
+  /* A moldura é o único campo do perfil validado contra lista fechada. As
+     duas linhas abaixo cobrem os dois lados: a válida grava, a inventada é
+     descartada em silêncio e a anterior permanece — que é o comportamento
+     certo para um campo decorativo, e não um 400 na cara de quem só quis
+     trocar a borda do avatar. */
+  const mol = await fn('jogar', { acao: 'perfil', moldura: 'anel' }, T)
+  ok(mol.d?.jogador?.moldura === 'anel', 'moldura salva', String(mol.d?.jogador?.moldura))
+  const molX = await fn('jogar', { acao: 'perfil', moldura: 'dourada-de-ouro' }, T)
+  ok(molX.d?.jogador?.moldura === 'anel', 'moldura inválida é ignorada', String(molX.d?.jogador?.moldura))
+
+  /* O sentinela das iniciais: o servidor guarda `@ini` como texto qualquer —
+     quem transforma em letras é a view do ranking, conferida mais abaixo. */
+  const ini = await fn('jogar', { acao: 'perfil', emoji: '@ini' }, T)
+  ok(ini.d?.jogador?.emoji === '@ini', 'sentinela de iniciais é aceito', String(ini.d?.jogador?.emoji))
 
   const p2 = await fn(
     'jogar',
@@ -204,6 +245,10 @@ try {
   const linha = rk.find((l) => l.nome === 'Ana Testes')
   ok(!!linha, 'quem optou aparece, com primeiro nome + último sobrenome')
   ok(linha?.pts === 12 && linha?.area === 'Testes' && linha?.empresa === 'QA Ltda', 'com pontos, área e empresa')
+  ok(linha?.moldura === 'anel', 'a moldura escolhida chega ao ranking', String(linha?.moldura))
+  /* Ana Descartavel de Testes → "AT". É a view resolvendo `@ini`: se ela
+     devolvesse o sentinela cru, o ranking desenharia "@ini" num círculo. */
+  ok(linha?.emoji === 'AT', 'a view resolve o sentinela em iniciais', String(linha?.emoji))
   ok(
     linha && !('email' in linha) && !('id' in linha) && !('matricula' in linha),
     'a view NÃO expõe e-mail, id nem matrícula',

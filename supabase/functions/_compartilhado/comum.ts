@@ -60,6 +60,8 @@ export interface Jogador {
   empresa: string | null
   emoji: string
   cor: string
+  /** Decoração em volta do avatar. Ver `MOLDURAS` em `jogar/index.ts`. */
+  moldura: string
   pts: number
   opt_in: boolean
 }
@@ -67,7 +69,7 @@ export interface Jogador {
 /* `apelido` não está aqui de propósito: o ranking passou a mostrar o nome
    real, e a coluna virou resíduo (ver 005_nome_e_empresa.sql). Não sendo
    selecionada, ela não chega ao app nem por engano. */
-export const CAMPOS_JOGADOR = 'id,email,nome,area,empresa,emoji,cor,pts,opt_in'
+export const CAMPOS_JOGADOR = 'id,email,nome,area,empresa,emoji,cor,moldura,pts,opt_in'
 
 /** Resolve a sessão a partir do cabeçalho `x-sessao`. Devolve null se o token
     não existe, expirou ou nem veio — a interface trata os três do mesmo jeito:

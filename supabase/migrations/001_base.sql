@@ -91,8 +91,8 @@ create index if not exists sessoes_expira_idx  on public.sessoes (expira_em);
 create table if not exists public.progresso (
   id        bigint generated always as identity primary key,
   jogador   uuid not null references public.jogadores(id) on delete cascade,
-  missao    text not null,          -- 'm1'..'m5' ou 'geral' (bônus)
-  tarefa    text not null,          -- 'jogo' | 'quiz-0'..'quiz-4' | 'bonus'
+  missao    text not null,          -- 'm1'..'m3' ou 'geral' (bônus)
+  tarefa    text not null,          -- 'jogo:<tipo>' | 'quiz-0'..'quiz-4' | 'bonus'
   pontos    integer not null default 0,
   detalhe   jsonb,
   criado_em timestamptz not null default now(),

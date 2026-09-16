@@ -12,7 +12,7 @@
       esconde. É também o que numera com honestidade: o número aqui carrega
       informação, não é enfeite de seção.
 
-   As missões não se travam entre si de propósito: quem só tem cinco minutos
+   As missões não se travam entre si de propósito: quem só tem alguns minutos
    consegue fechar uma, na ordem que quiser.
    ========================================================================== */
 
@@ -22,6 +22,7 @@ import { MISSOES, PERGUNTAS_POR_MISSAO, PTS_MAX } from '../conteudo/missoes'
 import {
   acertos,
   fezJogo,
+  jogosFeitos,
   medalhaDe,
   missaoCompleta,
   missoesCompletas,
@@ -47,7 +48,8 @@ export default function Inicio() {
         <div className="pilha-2">
           <h1 id="t-resumo">{primeiroNome ? `Olá, ${primeiroNome}` : 'Sua jornada'}</h1>
           <p>
-            {completas === 0 && 'Cinco missões, cerca de dez minutos cada. Comece por onde quiser.'}
+            {completas === 0 &&
+              'Três missões, cerca de quinze minutos cada. Comece por onde quiser.'}
             {completas > 0 && faltam > 0 && (
               <>
                 <strong>{completas}</strong> de <strong>{MISSOES.length}</strong> missões concluídas.
@@ -126,8 +128,23 @@ export default function Inicio() {
                       </Selo>
                     ) : (
                       <>
-                        <Selo estado={fezJogo(progresso, m.id) ? 'ok' : 'pendente'}>{m.jogoNome}</Selo>
-                        <Selo estado="pendente">
+                        {/* Com um jogo só, o selo diz o nome dele; com dois,
+                            vira contagem. Dois nomes longos lado a lado
+                            quebravam a linha do card no celular. */}
+                        {m.jogos.length === 1 ? (
+                          <Selo estado={fezJogo(progresso, m.id, m.jogos[0].tipo) ? 'ok' : 'pendente'}>
+                            {m.jogos[0].nome}
+                          </Selo>
+                        ) : (
+                          <Selo
+                            estado={
+                              jogosFeitos(progresso, m.id) === m.jogos.length ? 'ok' : 'pendente'
+                            }
+                          >
+                            Jogos {jogosFeitos(progresso, m.id)}/{m.jogos.length}
+                          </Selo>
+                        )}
+                        <Selo estado={feitas === PERGUNTAS_POR_MISSAO ? 'ok' : 'pendente'}>
                           Quiz {feitas}/{PERGUNTAS_POR_MISSAO}
                         </Selo>
                       </>
@@ -144,7 +161,7 @@ export default function Inicio() {
 
           Ele já foi aba própria, duas vezes, e nas duas era um lugar para onde
           a pessoa não tinha motivo de ir enquanto não terminasse. Aqui ele é a
-          consequência visível das cinco missões: quem rola a lista até o fim
+          consequência visível das três missões: quem rola a lista até o fim
           encontra o que ganha ao chegar lá — e quanto falta. */}
       <section className="pilha" id="certificado" aria-labelledby="t-certificado">
         <h2 id="t-certificado">Certificado</h2>
@@ -155,7 +172,7 @@ export default function Inicio() {
           <div className="painel pilha">
             <p className="prosa">
               Falta{faltam === 1 ? '' : 'm'} <strong>{faltam}</strong>{' '}
-              {faltam === 1 ? 'missão' : 'missões'}. Cada uma precisa do jogo e das{' '}
+              {faltam === 1 ? 'missão' : 'missões'}. Cada uma precisa dos jogos e das{' '}
               {PERGUNTAS_POR_MISSAO} perguntas.
             </p>
             <Barra

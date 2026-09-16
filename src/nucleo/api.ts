@@ -15,6 +15,7 @@
    ========================================================================== */
 
 import { ErroApi, type CodigoErro, type EstadoServidor, type LinhaRanking, type RespostaCredito, type RespostaEntrar, type RespostaQuiz, type IdMissao } from './tipos'
+import type { TipoJogo } from '../conteudo/missoes'
 import { lerToken } from './sessao'
 import { SUPABASE_ANON_PADRAO, SUPABASE_URL_PADRAO } from './projeto'
 
@@ -111,14 +112,19 @@ export const buscarEstado = () =>
 export const responderQuiz = (missao: IdMissao, pergunta: number, escolha: number) =>
   chamar<RespostaQuiz>('jogar', { acao: 'responder', missao, pergunta, escolha })
 
-/** `resultado` é o placar do mini-game: acertos, total de rodadas e tempo. */
-export const concluirJogo = (missao: IdMissao, resultado: { acertos: number; total: number; segundos: number }) =>
-  chamar<RespostaCredito>('jogar', { acao: 'jogo-concluir', missao, resultado })
+/** `jogo` é o tipo do mini-game (`memoria`, `ligar`…) — a missão tem mais de
+    um, e é ele que diz qual está sendo creditado. `resultado` é o placar:
+    acertos, total de rodadas e tempo. */
+export const concluirJogo = (
+  missao: IdMissao,
+  jogo: TipoJogo,
+  resultado: { acertos: number; total: number; segundos: number },
+) => chamar<RespostaCredito>('jogar', { acao: 'jogo-concluir', missao, jogo, resultado })
 
 export const pedirBonus = () =>
   chamar<RespostaCredito>('jogar', { acao: 'bonus' })
 
-export const salvarPerfil = (mudanca: { emoji?: string; cor?: string; opt_in?: boolean }) =>
+export const salvarPerfil = (mudanca: { emoji?: string; cor?: string; moldura?: string; opt_in?: boolean }) =>
   chamar<{ jogador: EstadoServidor['jogador'] }>('jogar', { acao: 'perfil', ...mudanca })
 
 /** Primeiro nome + último sobrenome, para caber numa linha. O ranking já
@@ -143,7 +149,7 @@ export function nomeCurto(nome: string): string {
    ------------------------------------------------------------------------ */
 export async function buscarRanking(limite = 100): Promise<LinhaRanking[]> {
   if (!CONFIGURADO) return []
-  const url = `${URL_BASE}/rest/v1/ranking_publico?select=posicao,nome,area,empresa,emoji,cor,pts&order=posicao.asc&limit=${limite}`
+  const url = `${URL_BASE}/rest/v1/ranking_publico?select=posicao,nome,area,empresa,emoji,cor,moldura,pts&order=posicao.asc&limit=${limite}`
   try {
     const r = await fetch(url, {
       headers: { apikey: ANON, authorization: `Bearer ${ANON}` },

@@ -21,10 +21,11 @@
    área e pontos — nunca e-mail, nome completo ou id.
    ========================================================================== */
 
-import { useCallback, useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { buscarRanking, nomeCurto } from '../nucleo/api'
 import { useEstado } from '../nucleo/estado'
+import Avatar from '../componentes/Avatar'
 import { Carregando, Nota, Vazio } from '../componentes/comuns'
 import type { LinhaRanking } from '../nucleo/tipos'
 
@@ -33,14 +34,19 @@ export default function Ranking() {
   const [linhas, setLinhas] = useState<LinhaRanking[] | null>(null)
   const [busca, setBusca] = useState('')
 
-  const carregar = useCallback(async () => {
-    setLinhas(null)
-    setLinhas(await buscarRanking(100))
-  }, [])
-
+  /* Uma leitura por montagem da tela, e mais nenhuma. Sem botão de atualizar
+     e sem `setInterval`: com 554 pessoas convidadas, um polling de 15s como o
+     do DOME GAMES estoura sozinho os 5 GB de egress do plano Free. */
   useEffect(() => {
-    void carregar()
-  }, [carregar])
+    let vivo = true
+    void (async () => {
+      const r = await buscarRanking(100)
+      if (vivo) setLinhas(r)
+    })()
+    return () => {
+      vivo = false
+    }
+  }, [])
 
   const filtradas = (linhas ?? []).filter(
     (l) =>
@@ -117,9 +123,7 @@ export default function Ranking() {
                   <tr key={`${l.posicao}-${l.nome}`} data-eu={eu ? 'sim' : undefined}>
                     <td className="col-pos">{l.posicao}</td>
                     <td className="col-nome">
-                      <span className="col-nome__avatar" aria-hidden="true" style={{ background: l.cor }}>
-                        {l.emoji}
-                      </span>
+                      <Avatar emoji={l.emoji} cor={l.cor} moldura={l.moldura} tamanho="m" />
                       {l.nome}
                       {eu && <strong> · você</strong>}
                     </td>
@@ -131,11 +135,22 @@ export default function Ranking() {
             </tbody>
           </table>
 
-          <div className="acoes">
-            <button type="button" className="botao botao--secundario" onClick={() => void carregar()}>
-              Atualizar a lista
-            </button>
-          </div>
+          {/* NÃO EXISTE BOTÃO DE ATUALIZAR AQUI, e a ausência é deliberada.
+
+              Ele existia e foi removido: um botão de recarregar ao pé de uma
+              lista é um convite a apertar de novo, e apertar de novo é uma
+              leitura da view a cada toque. Com 554 pessoas convidadas, um
+              punhado delas cutucando o botão enquanto o ranking não muda
+              basta para consumir o egress do plano Free — e o teto, quando
+              estoura, derruba o app inteiro, não só o ranking.
+
+              O que a pessoa perde: nada que ela não tenha. O ranking é
+              materializado e atualiza a cada cinco minutos, então apertar o
+              botão nos primeiros quatro minutos e cinquenta e nove segundos
+              devolvia exatamente a mesma lista — um gasto certo por uma
+              novidade improvável. Quem quiser ver de novo troca de aba e
+              volta, ou recarrega a página, que é o gesto que todo mundo já
+              conhece. */}
         </>
       )}
     </div>

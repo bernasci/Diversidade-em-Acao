@@ -10,35 +10,85 @@
    O que sobra para o jogador escolher é o avatar e, principalmente, SE quer
    aparecer. Com nome real em jogo, o texto do opt-in tem de dizer exatamente
    o que fica visível — e é o que ele faz, listando os campos um a um.
+
+   TRÊS ESCOLHAS, TRÊS NATUREZAS DIFERENTES, e é isso que organiza a tela: o
+   ÍCONE é uma entre dezenas de opções mais uma alternativa (as iniciais), a
+   COR é uma entre dez, e a MOLDURA é decoração. Por isso só o ícone ganha
+   filtro por grupo — os oitenta e dois empilhados seriam uma tela inteira de
+   rolagem antes de a cor aparecer —, enquanto cor e moldura cabem inteiras de
+   uma vez.
+
+   A PRÉVIA existe porque escolher avatar olhando um círculo de 4rem é
+   escolher no lugar errado: ele vai ser visto numa lista, com 1,75rem, ao
+   lado do nome e dos pontos. Ela mostra a linha do ranking de verdade, com o
+   texto mudando conforme a pessoa esteja dentro ou fora dele — "é assim que
+   você aparece" e "é assim que você apareceria" não são a mesma frase, e a
+   diferença entre elas é a decisão que esta tela pede.
+
+   Os estilos saíram do JSX e foram para `componentes.css`. Não é preferência:
+   `style` inline não responde a media query, então a tela ficava fora do tema
+   de alto contraste e do `prefers-reduced-motion` que o resto do app respeita.
+   O que sobrou inline é dado — a cor escolhida —, não formatação.
    ========================================================================== */
 
 import { useState } from 'react'
 import { nomeCurto, salvarPerfil } from '../nucleo/api'
 import { useEstado } from '../nucleo/estado'
 import { useAvisos } from '../componentes/avisos'
+import Avatar from '../componentes/Avatar'
 import { Erro, GradeMedalhas, Nota } from '../componentes/comuns'
 import { medalhaDe, MEDALHAS } from '../nucleo/progresso'
 import { ErroApi } from '../nucleo/tipos'
-
-const EMOJIS = ['😀', '🙂', '😎', '🤓', '🧑‍💻', '🧑‍🔧', '👷', '🦾', '🧠', '🌱', '⚓', '🚀']
-const CORES = ['#004AA1', '#00BBDC', '#1E8E5A', '#B8791A', '#7C5CE0', '#C23B22']
+import {
+  COR_PADRAO,
+  CORES_AVATAR,
+  EMOJI_PADRAO,
+  GRUPOS_AVATAR,
+  INICIAIS,
+  MOLDURA_PADRAO,
+  MOLDURAS,
+  corDeContraste,
+  iniciaisDe,
+} from '../conteudo/avatares'
 
 export default function Perfil() {
   const { jogador, progresso, atualizarJogador, sair } = useEstado()
   const { avisar } = useAvisos()
-  const [emoji, setEmoji] = useState(jogador?.emoji ?? '😀')
-  const [cor, setCor] = useState(jogador?.cor ?? CORES[0])
+  const [emoji, setEmoji] = useState(jogador?.emoji ?? EMOJI_PADRAO)
+  const [cor, setCor] = useState(jogador?.cor ?? COR_PADRAO)
+  const [moldura, setMoldura] = useState(jogador?.moldura || MOLDURA_PADRAO)
   const [salvando, setSalvando] = useState(false)
   const [erro, setErro] = useState<string | null>(null)
+
+  /* Abre no grupo do ícone atual, e não no primeiro: quem já escolheu um
+     bicho e volta para trocar deve encontrar a escolha na tela, não procurá-la
+     em sete pastilhas. */
+  const [grupo, setGrupo] = useState(
+    () => GRUPOS_AVATAR.find((g) => g.emojis.includes(jogador?.emoji ?? ''))?.id ?? GRUPOS_AVATAR[0].id,
+  )
 
   if (!jogador) return null
 
   const medalha = medalhaDe(progresso)
   const origem = [jogador.area, jogador.empresa].filter(Boolean).join(' · ')
+  const grupoAtual = GRUPOS_AVATAR.find((g) => g.id === grupo) ?? GRUPOS_AVATAR[0]
 
-  /* Salva na hora, sem botão "Salvar": são três escolhas de um toque cada, e
-     um formulário com botão faria a pessoa achar que precisa confirmar. */
-  async function salvar(mudanca: { emoji?: string; cor?: string; opt_in?: boolean }, aviso: string) {
+  /* A paleta trocou de seis cores para dez, e duas das antigas — o âmbar
+     #B8791A e o vermelho #C23B22 — não sobreviveram à troca. Quem as tinha
+     escolhido abriria esta tela com o avatar numa cor e a paleta inteira sem
+     nada marcado, sem entender por quê. A cor atual entra na lista quando não
+     estiver nela: some sozinha assim que a pessoa escolher outra, e some do
+     código no dia em que ninguém mais tiver uma cor fora da paleta. */
+  const paleta = CORES_AVATAR.some((c) => c.hex.toLowerCase() === cor.toLowerCase())
+    ? CORES_AVATAR
+    : [{ hex: cor, nome: 'Sua cor atual' }, ...CORES_AVATAR]
+
+  /* Salva na hora, sem botão "Salvar": são escolhas de um toque cada, e um
+     formulário com botão faria a pessoa achar que precisa confirmar. */
+  async function salvar(
+    mudanca: { emoji?: string; cor?: string; moldura?: string; opt_in?: boolean },
+    aviso: string,
+  ) {
     setErro(null)
     setSalvando(true)
     try {
@@ -57,28 +107,14 @@ export default function Perfil() {
       <h1>Perfil</h1>
 
       <section className="painel pilha" aria-labelledby="t-identidade">
-        <h2 id="t-identidade" style={{ fontSize: '1.125rem' }}>
+        <h2 id="t-identidade" className="painel__titulo">
           Como você aparece
         </h2>
 
-        <div className="linha">
-          <span
-            aria-hidden="true"
-            style={{
-              display: 'grid',
-              placeItems: 'center',
-              width: '4rem',
-              height: '4rem',
-              flex: 'none',
-              borderRadius: '50%',
-              background: cor,
-              fontSize: '2rem',
-            }}
-          >
-            {emoji}
-          </span>
-          <div style={{ minWidth: 0 }}>
-            <p style={{ fontWeight: 700, fontSize: 'var(--t-md)' }}>{nomeCurto(jogador.nome)}</p>
+        <div className="perfil__identidade">
+          <Avatar emoji={emoji} cor={cor} moldura={moldura} nome={jogador.nome} />
+          <div className="perfil__quem">
+            <p className="perfil__nome">{nomeCurto(jogador.nome)}</p>
             <p className="meta">{origem || 'Área e empresa não informadas'}</p>
           </div>
         </div>
@@ -88,17 +124,49 @@ export default function Perfil() {
           com o RH — a correção aparece no seu próximo acesso.
         </p>
 
-        <fieldset style={{ border: 0, padding: 0 }}>
-          <legend style={{ fontWeight: 600, fontSize: '.9375rem', marginBottom: '.375rem' }}>Ícone</legend>
-          <div className="linha" style={{ gap: '.375rem' }}>
-            {EMOJIS.map((e) => (
+        {/* ------------------------------------------------------- ÍCONE -- */}
+        <fieldset className="campo pilha-2">
+          <legend className="campo__legenda">Ícone</legend>
+
+          <button
+            type="button"
+            className="opcao-iniciais"
+            aria-pressed={emoji === INICIAIS}
+            disabled={salvando}
+            onClick={() => {
+              setEmoji(INICIAIS)
+              void salvar({ emoji: INICIAIS }, 'Agora seu avatar mostra suas iniciais.')
+            }}
+          >
+            <Avatar emoji={INICIAIS} cor={cor} moldura={moldura} nome={jogador.nome} tamanho="m" />
+            Usar minhas iniciais ({iniciaisDe(jogador.nome)})
+          </button>
+
+          {/* Botões com `aria-pressed`, e não um `tablist`: trocar de grupo
+              filtra uma lista, não navega para outro painel. O rótulo da grade
+              abaixo nomeia o grupo aberto, então quem usa leitor de tela não
+              depende de enxergar a pastilha destacada. */}
+          <div className="grupos" role="group" aria-label="Grupos de ícones">
+            {GRUPOS_AVATAR.map((g) => (
+              <button
+                key={g.id}
+                type="button"
+                aria-pressed={grupo === g.id}
+                onClick={() => setGrupo(g.id)}
+              >
+                {g.titulo}
+              </button>
+            ))}
+          </div>
+
+          <div className="opcoes" role="group" aria-label={`Ícones do grupo ${grupoAtual.titulo}`}>
+            {grupoAtual.emojis.map((e) => (
               <button
                 key={e}
                 type="button"
-                className="botao botao--secundario"
+                className="opcao-avatar"
                 aria-pressed={emoji === e}
                 aria-label={`Ícone ${e}`}
-                style={{ minWidth: '3rem', padding: '.4rem' }}
                 disabled={salvando}
                 onClick={() => {
                   setEmoji(e)
@@ -111,40 +179,79 @@ export default function Perfil() {
           </div>
         </fieldset>
 
-        <fieldset style={{ border: 0, padding: 0 }}>
-          <legend style={{ fontWeight: 600, fontSize: '.9375rem', marginBottom: '.375rem' }}>Cor</legend>
-          <div className="linha" style={{ gap: '.375rem' }}>
-            {CORES.map((c) => (
+        {/* --------------------------------------------------------- COR -- */}
+        <fieldset className="campo">
+          <legend className="campo__legenda">Cor</legend>
+          <div className="cores">
+            {paleta.map((c) => (
               <button
-                key={c}
+                key={c.hex}
                 type="button"
-                aria-pressed={cor === c}
-                aria-label={`Cor ${c}`}
+                className="cor"
+                aria-pressed={cor === c.hex}
+                aria-label={c.nome}
                 disabled={salvando}
+                style={{ background: c.hex, color: corDeContraste(c.hex) }}
                 onClick={() => {
-                  setCor(c)
-                  void salvar({ cor: c }, 'Cor salva.')
-                }}
-                style={{
-                  width: '2.75rem',
-                  height: '2.75rem',
-                  borderRadius: '50%',
-                  background: c,
-                  border: cor === c ? '3px solid var(--ink)' : '1px solid var(--linha)',
-                  cursor: 'pointer',
+                  setCor(c.hex)
+                  void salvar({ cor: c.hex }, `Cor ${c.nome.toLowerCase()} salva.`)
                 }}
               >
-                {cor === c && <span className="so-leitor">selecionada</span>}
+                <span aria-hidden="true">{cor === c.hex ? '✓' : ''}</span>
               </button>
             ))}
           </div>
         </fieldset>
 
+        {/* ----------------------------------------------------- MOLDURA -- */}
+        <fieldset className="campo">
+          <legend className="campo__legenda">Moldura</legend>
+          {/* Cada botão é o próprio avatar com a moldura aplicada: a diferença
+              entre "anel" e "anel duplo" é visual, e um rótulo sozinho não a
+              comunica. O nome vai junto, para quem não vê a diferença. */}
+          <div className="molduras">
+            {MOLDURAS.map((m) => (
+              <button
+                key={m.id}
+                type="button"
+                className="moldura-opcao"
+                aria-pressed={moldura === m.id}
+                aria-label={`${m.nome}. ${m.descricao}`}
+                disabled={salvando}
+                onClick={() => {
+                  setMoldura(m.id)
+                  void salvar({ moldura: m.id }, `Moldura: ${m.nome.toLowerCase()}.`)
+                }}
+              >
+                <Avatar emoji={emoji} cor={cor} moldura={m.id} nome={jogador.nome} tamanho="m" />
+                <span aria-hidden="true">{m.nome}</span>
+              </button>
+            ))}
+          </div>
+        </fieldset>
+
+        {/* ------------------------------------------------------ PRÉVIA -- */}
+        <div className="pilha-2">
+          <p className="meta">
+            {jogador.opt_in
+              ? 'É assim que você aparece na lista pública:'
+              : 'É assim que você apareceria, se entrasse no ranking:'}
+          </p>
+          <div className="previa">
+            <Avatar emoji={emoji} cor={cor} moldura={moldura} nome={jogador.nome} tamanho="m" />
+            <span className="previa__quem">
+              <span className="previa__nome">{nomeCurto(jogador.nome)}</span>
+              <span className="previa__origem meta">{origem || '—'}</span>
+            </span>
+            <span className="previa__pts">{jogador.pts}</span>
+          </div>
+        </div>
+
         {erro && <Erro>{erro}</Erro>}
       </section>
 
       <section className="painel pilha" aria-labelledby="t-ranking">
-        <h2 id="t-ranking" style={{ fontSize: '1.125rem' }}>
+        <h2 id="t-ranking" className="painel__titulo">
           Ranking público
         </h2>
 
@@ -179,11 +286,11 @@ export default function Perfil() {
       </section>
 
       <section className="painel pilha" aria-labelledby="t-medalhas">
-        <h2 id="t-medalhas" style={{ fontSize: '1.125rem' }}>
+        <h2 id="t-medalhas" className="painel__titulo">
           Medalhas
         </h2>
         <GradeMedalhas atual={medalha} />
-        <ul className="pilha-2 meta" style={{ paddingLeft: '1.125rem' }}>
+        <ul className="pilha-2 meta lista-medalhas">
           {Object.entries(MEDALHAS).map(([id, m]) => (
             <li key={id}>
               <strong>{m.nome}</strong> — {m.comoGanhar}
@@ -193,7 +300,7 @@ export default function Perfil() {
       </section>
 
       <section className="painel pilha" aria-labelledby="t-conta">
-        <h2 id="t-conta" style={{ fontSize: '1.125rem' }}>
+        <h2 id="t-conta" className="painel__titulo">
           Sua conta
         </h2>
         <p className="meta">

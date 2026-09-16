@@ -50,8 +50,8 @@ Veja `ferramentas/exemplo-lista.csv` para o formato.
 **Carregar a lista** (com quem cuida do técnico, uma vez só):
 
 ```powershell
-npm run importar -- ferramentas/lista.csv --simular   # confere o que foi lido, sem enviar
-npm run importar -- ferramentas/lista.csv             # envia
+npm run importar -- ferramentas/lista.csv --simular --empresa DOME   # confere, sem enviar
+npm run importar -- ferramentas/lista.csv --empresa DOME             # envia
 ```
 
 Pode rodar quantas vezes quiser. E-mail repetido **atualiza** a linha; não duplica. Quando o RH
@@ -92,7 +92,7 @@ Abra **SQL Editor** no painel do Supabase, copie do arquivo `supabase/consultas.
 interessa e execute só ele. Os blocos prontos:
 
 1. **Adesão** — convidados, quantos entraram, quantos começaram a jogar.
-2. **Conclusão** — quantas pessoas fecharam as 5 missões, e quantas pararam em 4, 3, 2, 1.
+2. **Conclusão** — quantas pessoas fecharam as 3 missões, e quantas pararam em 2 ou em 1.
 3. **Onde as pessoas param** — por missão. Se uma missão despenca em relação à anterior, o problema
    costuma ser dela: conteúdo longo demais, jogo confuso.
 4. **Perguntas mais erradas** — é a melhor pauta de comunicação interna que a campanha produz: mostra

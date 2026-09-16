@@ -18,27 +18,32 @@ select
 
 
 -- ---------------------------------------------------------------------------
--- 2. Quantas pessoas concluíram a jornada inteira (5 missões).
---    Uma missão está concluída quando tem o mini-game e as 5 perguntas.
+-- 2. Quantas pessoas concluíram a jornada inteira (3 missões).
+--    Uma missão está concluída quando tem TODOS os mini-games dela e as 5
+--    perguntas. Hoje é um jogo por missão, mas a lista `esperado` continua
+--    existindo porque já foram dois em m1 e m2 — e voltar a ser é uma linha em
+--    `src/conteudo/missoes.ts`. Mexeu lá, mexa aqui.
 -- ---------------------------------------------------------------------------
-with por_missao as (
-  select jogador, missao,
-         bool_or(tarefa = 'jogo')                        as fez_jogo,
-         count(*) filter (where tarefa like 'quiz-%')    as perguntas
-    from public.progresso
-   where missao <> 'geral'
-   group by jogador, missao
+with esperado(missao, jogos) as (
+  values ('m1', 1), ('m2', 1), ('m3', 1)
+),
+por_missao as (
+  select p.jogador, p.missao,
+         count(*) filter (where p.tarefa like 'jogo:%')  as jogos,
+         count(*) filter (where p.tarefa like 'quiz-%')  as perguntas
+    from public.progresso p
+   where p.missao <> 'geral'
+   group by p.jogador, p.missao
 ),
 completas as (
-  select jogador, count(*) as missoes_ok
-    from por_missao
-   where fez_jogo and perguntas >= 5
-   group by jogador
+  select pm.jogador, count(*) as missoes_ok
+    from por_missao pm
+    join esperado e on e.missao = pm.missao
+   where pm.jogos >= e.jogos and pm.perguntas >= 5
+   group by pm.jogador
 )
 select
-  count(*) filter (where missoes_ok = 5) as concluiram_tudo,
-  count(*) filter (where missoes_ok = 4) as em_4,
-  count(*) filter (where missoes_ok = 3) as em_3,
+  count(*) filter (where missoes_ok = 3) as concluiram_tudo,
   count(*) filter (where missoes_ok = 2) as em_2,
   count(*) filter (where missoes_ok = 1) as em_1
 from completas;
@@ -49,7 +54,7 @@ from completas;
 --    anterior, o problema costuma ser dela — conteúdo longo, jogo confuso.
 -- ---------------------------------------------------------------------------
 select missao,
-       count(distinct jogador) filter (where tarefa = 'jogo')      as fizeram_o_jogo,
+       count(*) filter (where tarefa like 'jogo:%')                as jogos_concluidos,
        count(distinct jogador) filter (where tarefa like 'quiz-%') as comecaram_o_quiz,
        count(*)  filter (where tarefa like 'quiz-%' and pontos > 0) as acertos,
        count(*)  filter (where tarefa like 'quiz-%')                as respostas
@@ -91,18 +96,23 @@ select coalesce(e.area, 'sem área') as area,
 -- 6. Quem concluiu tudo — a lista para emitir reconhecimento.
 --    Traz nome e e-mail: use só internamente.
 -- ---------------------------------------------------------------------------
-with por_missao as (
-  select jogador, missao,
-         bool_or(tarefa = 'jogo')                     as fez_jogo,
-         count(*) filter (where tarefa like 'quiz-%') as perguntas
-    from public.progresso where missao <> 'geral' group by jogador, missao
+with esperado(missao, jogos) as (
+  values ('m1', 1), ('m2', 1), ('m3', 1)
+),
+por_missao as (
+  select p.jogador, p.missao,
+         count(*) filter (where p.tarefa like 'jogo:%')  as jogos,
+         count(*) filter (where p.tarefa like 'quiz-%')  as perguntas
+    from public.progresso p where p.missao <> 'geral' group by p.jogador, p.missao
 )
 select j.nome, j.email, j.area, j.pts,
        (select count(*) from public.progresso x
          where x.jogador = j.id and x.tarefa like 'quiz-%' and x.pontos > 0) as acertos
   from public.jogadores j
-  join (select jogador from por_missao where fez_jogo and perguntas >= 5
-         group by jogador having count(*) = 5) c on c.jogador = j.id
+  join (select pm.jogador from por_missao pm
+          join esperado e on e.missao = pm.missao
+         where pm.jogos >= e.jogos and pm.perguntas >= 5
+         group by pm.jogador having count(*) = 3) c on c.jogador = j.id
  order by j.pts desc, j.nome;
 
 

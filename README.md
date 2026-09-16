@@ -37,7 +37,7 @@ outro banco — veja [`.env.example`](.env.example).
 | `npm run dev` | servidor de desenvolvimento |
 | `npm run build` | checa os tipos e gera `dist/` |
 | `npm run checar` | só a checagem de tipos |
-| `npm run importar -- lista.csv` | carrega a lista do RH na tabela `elegiveis` |
+| `npm run importar -- lista.csv --empresa DOME` | carrega a lista do RH na tabela `elegiveis` |
 | `npm run fumaca` | **teste ponta a ponta** contra o projeto real (40 verificações) |
 | `npm run carga -- 200` | teste de carga contra o projeto real |
 
@@ -72,6 +72,15 @@ Functions, nas migrations ou nas regras de pontuação.
    npm run importar -- ferramentas/lista.csv             # envia de verdade
    ```
 
+   O importador aceita CSV em UTF-8 **ou em Windows-1252** (o que o Excel em português salva por
+   padrão) e detecta qual é sozinho. Casa a coluna por prefixo, então `EMAIL_CORPORATIVO` e
+   `E-MAIL PESSOAL` valem como `email`. Nome em CAIXA ALTA é capitalizado na leitura — folha de
+   pagamento escreve assim, o ranking não deveria.
+
+   `--empresa DOME` preenche a coluna quando a planilha não traz nenhuma. **Use sempre que a lista
+   tiver e-mail pessoal:** sem valor, o banco deduz a empresa do domínio (migration 006), e o
+   ranking passa a exibir gente da "Gmail" e da "Hotmail".
+
 ### Modelo de segurança, em uma frase
 
 **O navegador não fala com o banco.** Todas as tabelas têm RLS ligado e nenhuma policy — na prática,
@@ -79,7 +88,7 @@ Functions, nas migrations ou nas regras de pontuação.
 exceção é a view `ranking_publico`, com `grant select to anon`, e ela expõe apelido, área e pontos de
 quem optou por aparecer. E-mail, nome completo e id não estão nela.
 
-O gabarito das 25 perguntas vive em `quiz_gabarito`, que ninguém fora da função `jogar` consegue ler.
+O gabarito das 15 perguntas vive em `quiz_gabarito`, que ninguém fora da função `jogar` consegue ler.
 Abrir o DevTools durante o quiz não revela resposta nenhuma.
 
 ---
@@ -127,28 +136,44 @@ src/
   nucleo/        api, sessão, estado, progresso, acessibilidade
   componentes/   quiz, avisos, peças comuns
   telas/         entrada, início, missão, ranking, perfil, certificado
-  jogos/         os cinco mini-games + o contrato que os une
-  conteudo/      missões, 25 perguntas (sem gabarito), dados dos mini-games
+  jogos/         os cinco mini-games (três na trilha) + o contrato que os une
+  conteudo/      missões, 15 perguntas (sem gabarito), dados dos mini-games
   estilo/        tokens de marca, base, componentes, jogos
 supabase/
-  migrations/    001 base · 002 gabarito · 003 segurança · 004 ranking
+  migrations/    001 base · 002 gabarito · 003 segurança · 004 ranking · 005–007
   functions/     entrar, jogar
   consultas.sql  o painel do RH, em SQL
 ferramentas/     importador da lista, teste de carga
 ```
 
-### As cinco missões
+### As três missões
 
-| # | Tema | Mini-game |
-| --- | --- | --- |
-| M1 | Conceitos e a Lei de Cotas | Jogo da memória |
-| M2 | Tipos de deficiência e comunicação respeitosa | Ligar os pares |
-| M3 | Acessibilidade e adaptações razoáveis | Quebra-cabeça |
-| M4 | Capacitismo e vieses inconscientes | Mito ou Fato |
-| M5 | Carreira, liderança e inclusão no dia a dia | Simulação de cenário |
+| # | Verbo | Tema | Mini-game |
+| --- | --- | --- | --- |
+| M1 | Entender | O que é deficiência e como falar sobre isso | Jogo da memória |
+| M2 | Desaprender | Barreiras, adaptações e capacitismo | Mito ou Fato |
+| M3 | Agir | Carreira, liderança e inclusão no dia a dia | Simulação de cenário |
 
-Pontuação: 10 por mini-game + 2 por acerto no quiz (10 por missão) + 20 de bônus ao fechar as cinco.
-**Total: 120 pontos.** Medalhas: Bronze (1 missão), Prata (3), Ouro (5), Platina (5 com 25 acertos).
+A trilha teve cinco missões até a revisão de agosto de 2026. "Entender" e "conhecer" eram quase
+sinônimos para quem chegava de fora, e "adaptar" e "desaprender" tratavam da mesma coisa por dois
+ângulos — a barreira física e a atitudinal. Na mesma revisão saiu todo o conteúdo de legislação
+(Lei de Cotas, LBI, percentuais, INSS); o material ficou no registro das pessoas, não no jurídico.
+
+A fusão chegou a dar dois mini-games às missões fundidas, e não ficou: são dez minutos no celular,
+no meio do expediente, e dois tabuleiros antes do quiz viravam uma sessão. **"Ligar os pares" e
+"Quebra-cabeça" saíram da trilha, mas continuam no repositório** — componentes em `src/jogos/`,
+conteúdo em `src/conteudo/jogos.ts` — e voltam com uma linha em `missoes.ts` mais a lista espelhada
+na Edge Function. Enquanto estiverem fora, ninguém os baixa: o `lazy()` só busca o que uma missão
+pede, e o servidor recusa creditar jogo que não esteja na trilha.
+
+Pontuação: 10 por mini-game (são 3) + 2 por acerto no quiz (10 por missão) + 20 de bônus ao fechar
+as três. **Total: 80 pontos.** Medalhas: Bronze (1 missão), Prata (2), Ouro (3), Platina (3 com os
+15 acertos).
+
+> Trocar a trilha invalida o progresso gravado: as tarefas de mini-game mudaram de nome e as
+> perguntas mudaram de assunto. Rode `002_gabarito.sql` e depois
+> `007_trilha_de_tres_missoes.sql` — o segundo zera `progresso` e os pontos, e avisa o que dizer ao
+> RH antes.
 
 ---
 

@@ -33,7 +33,7 @@ import Perfil from './telas/Perfil'
 /* Três abas, e não quatro. A quarta já foi "Certificado" e depois
    "Conquistas", e nas duas formas ela era um lugar para onde a pessoa não
    tinha motivo de ir: o certificado vive no fim da trilha, onde ele é a
-   consequência das cinco missões, e não uma seção à parte. */
+   consequência das três missões, e não uma seção à parte. */
 const ABAS = [
   { para: '/', Ico: Map, rotulo: 'Missões' },
   { para: '/ranking', Ico: Trophy, rotulo: 'Ranking' },

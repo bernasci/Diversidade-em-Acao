@@ -12,7 +12,7 @@
    vezes a mesma pergunta, e é o que impede tentar de novo até acertar.
    ========================================================================== */
 
-import { useMemo, useState } from 'react'
+import { useState } from 'react'
 import { responderQuiz } from '../nucleo/api'
 import { useEstado } from '../nucleo/estado'
 import { PERGUNTAS_POR_MISSAO } from '../conteudo/missoes'
@@ -42,7 +42,11 @@ export default function Quiz({ missao }: { missao: IdMissao }) {
   const [enviando, setEnviando] = useState(false)
   const [erro, setErro] = useState<string | null>(null)
 
-  const feitasAntes = useMemo(() => respondidas(progresso, missao), [progresso, missao])
+  /* Congelado na montagem pelo mesmo motivo que `pendentes`: o `progresso`
+     cresce a cada resposta, e somar um valor que sobe a um `passo` que
+     também sobe fazia o contador andar de dois em dois — "Pergunta 3 de 5"
+     logo após a primeira, e 9 na última. */
+  const [feitasAntes] = useState(() => respondidas(progresso, missao))
   const indice = pendentes[passo]
   const terminou = passo >= pendentes.length
 
