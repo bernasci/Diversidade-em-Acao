@@ -7,6 +7,27 @@
    o jeito de descobrir tarde que a tela pequena ficou espremida.
    ========================================================================== */
 
+/* --------------------------------------------------------------------------
+   A FONTE DO LETREIRO DA MARCA.
+
+   Nimbus Sans, recortada só com os glifos de "Diversidade em Ação" — 1,6 KB.
+   É a fonte do logotipo do evento; ver o comentário em `index.html` sobre o
+   recorte e sobre a licença.
+
+   `font-display: swap` e não `block`: o nome é curto e aparece no cabeçalho
+   desde o primeiro quadro. Bloquear a pintura por causa de 1,6 KB trocaria um
+   letreiro certo por uma tela vazia, e o fallback é uma grotesca de métrica
+   parecida — a troca quase não desloca nada.
+   -------------------------------------------------------------------------- */
+@font-face {
+  font-family: 'Nimbus Sans';
+  src: url('/nimbus-sans-marca.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+
 *,
 *::before,
 *::after {
@@ -234,12 +255,21 @@ a:hover {
   }
 }
 /* O nome do jogo cede primeiro: numa tela de 320px com o placar do lado, é
-   ele que trunca, nunca a marca da empresa nem o símbolo. */
+   ele que trunca, nunca a marca da empresa nem o símbolo.
+
+   A FONTE E O PESO SÃO OS DO LOGOTIPO, não os do cabeçalho. O letreiro da
+   marca é uma grotesca de peso regular; estava saindo em Inter 700 porque
+   herdava o estilo de `.marca`, que vale para o conjunto. Aqui ele volta a ser
+   o que é no arquivo original — inclusive o espacejamento, que em `.marca` é
+   negativo e no logotipo é normal. */
 .marca__nome {
   min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  font-family: var(--fonte-marca);
+  font-weight: 400;
+  letter-spacing: normal;
 }
 
 .cabecalho__acoes {

@@ -243,11 +243,14 @@
   width: min(26rem, 100%);
   text-align: center;
 }
+/* O nome do jogo na entrada é a MARCA, não um título de tela: mesma fonte,
+   mesmo peso e mesmo espacejamento do logotipo do evento. */
 .palco__titulo {
   color: #fff;
+  font-family: var(--fonte-marca);
   font-size: var(--t-xl);
-  font-weight: 700;
-  letter-spacing: -0.03em;
+  font-weight: 400;
+  letter-spacing: normal;
   line-height: 1.15;
 }
 :root[data-contraste='alto'] .palco__titulo {

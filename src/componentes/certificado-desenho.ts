@@ -73,16 +73,19 @@ export async function desenharCertificado(
      baixar um pedaço que não cobre o "Ação" do letreiro. */
   const AMOSTRA = 'Diversidade em Ação — ÁÉÍÓÚÃÕÇ 0123456789'
   const FONTES = [
-    '400 58px Inter',
+    // O letreiro da marca, e só ele, sai na Nimbus Sans — ver `index.html`. A
+    // fonte vem recortada com os glifos do nome, então a amostra pedida é o
+    // próprio nome: pedir outra coisa não carregaria nada.
+    ['400 58px "Nimbus Sans"', 'Diversidade em Ação'],
     '600 21px Inter',
     '400 25px Inter',
     '700 60px Inter',
     '700 32px Inter',
     '400 20px Inter',
     '400 22px Inter',
-  ]
+  ].map((f) => (Array.isArray(f) ? f : [f, AMOSTRA]) as [string, string])
   try {
-    await Promise.all(FONTES.map((f) => document.fonts.load(f, AMOSTRA)))
+    await Promise.all(FONTES.map(([f, t]) => document.fonts.load(f, t)))
     await document.fonts.ready
   } catch {
     /* navegador sem a API, ou fonte que não veio: desenha com o que tiver */
@@ -137,7 +140,7 @@ export async function desenharCertificado(
 
   /* -------------------------------------------------- a marca do evento -- */
   coracaoEm(L / 2, 64, 146, '#00BBDC')
-  escrever('Diversidade em Ação', L / 2, 288, '400 58px Inter, sans-serif', TINTA, -0.5)
+  escrever('Diversidade em Ação', L / 2, 288, '400 58px "Nimbus Sans", Helvetica, Arial, sans-serif', TINTA, 0)
 
   /* A FILEIRA DE CORAÇÕES no lugar de um filete. É o sistema da marca — a
      mesma forma em seis cores — e diz o que o texto diria em uma frase. */

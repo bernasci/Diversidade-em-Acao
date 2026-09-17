@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <meta name="theme-color" content="#001E62" />
-  <meta name="description" content="Diversidade em Ação — jornada de 5 missões sobre a inclusão de Pessoas com Deficiência no mundo do trabalho." />
+  <meta name="description" content="Diversidade em Ação — jornada de 3 missões sobre a inclusão de Pessoas com Deficiência no mundo do trabalho." />
   <title>Diversidade em Ação</title>
 
   <!-- A marca do jogo: o arco da DOME com pessoas embaixo. SVG primeiro, PNG
@@ -33,6 +33,30 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" />
+  <!-- O LETREIRO DA MARCA tem fonte própria, e ela é auto-hospedada.
+
+       O logotipo do evento é desenhado em Nimbus Sans — o clone da Helvetica
+       da URW. Medi o arquivo original e conferi glifo a glifo: a vírgula e o
+       'a' batem, o que o Arial e seus clones não fazem.
+
+       O arquivo em `public/` é a fonte RECORTADA: só os glifos de
+       "Diversidade em Ação", 1,6 KB em vez de 80 KB. A contrapartida é uma
+       regra — esta fonte serve a essa string e a nenhuma outra. Escrever
+       qualquer outra palavra com ela cai no fallback sem avisar. Mudou o nome
+       do jogo, gere o recorte de novo.
+
+       LICENÇA: AGPLv3, reproduzida em `public/nimbus-sans-LICENSE.txt`, que é
+       servida junto com a fonte de propósito. A exceção da licença cobre
+       embutir em PostScript/PDF e não menciona webfont — o uso aqui foi uma
+       decisão do time, e vale confirmar com quem cuida de licenciamento, ou
+       trocar pela licença que a URW vende. -->
+  <link
+    rel="preload"
+    href="/nimbus-sans-marca.woff2"
+    as="font"
+    type="font/woff2"
+    crossorigin
+  />
 </head>
 <body>
   <!-- O primeiro item tabulável da página. Some do fluxo visual até receber

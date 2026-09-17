@@ -71,6 +71,15 @@
      encolhe dentro de um card fica pior, não melhor. */
   --fonte: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
 
+  /* A FONTE DO LETREIRO DA MARCA — "Diversidade em Ação" e mais nada.
+
+     Nimbus Sans é a fonte do logotipo do evento, auto-hospedada e recortada
+     (ver `@font-face` em base.css). O fallback desce pela mesma família: a
+     Helvetica de verdade em quem a tiver, depois o Arial, que compartilha as
+     métricas. Enquanto o arquivo de 1,6 KB não chega, o letreiro sai numa
+     grotesca de largura parecida e quase não desloca ao trocar. */
+  --fonte-marca: 'Nimbus Sans', Helvetica, Arial, sans-serif;
+
   --t-xs: 0.75rem; /* 12 · selo, legenda */
   --t-sm: 0.875rem; /* 14 · metadado, ajuda */
   --t-base: 1rem; /* 16 · corpo. NUNCA abaixo disso em celular */
