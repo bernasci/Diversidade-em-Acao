@@ -115,13 +115,27 @@ export default function App() {
           diferença entre uma composição e um empilhamento. Sobra o botão de
           acessibilidade, que precisa estar lá desde o login. */}
       <header className={`cabecalho${entrando ? ' cabecalho--palco' : ''}`}>
-        {/* Co-assinatura: a marca da DOME primeiro, o nome do jogo depois,
-            separados por um filete. É o que faz a tela ser reconhecida como
-            um produto da empresa antes de ser reconhecida como um jogo. */}
+        {/* Co-assinatura: a marca da DOME primeiro, a do jogo depois, separadas
+            por um filete. É o que faz a tela ser reconhecida como um produto da
+            empresa antes de ser reconhecida como um jogo.
+
+            O NOME DO JOGO GANHOU O CORAÇÃO da marca do evento. O que não dá
+            para usar aqui é o arquivo inteiro: o lockup original é vertical —
+            coração em cima, letreiro embaixo — e numa faixa de 20px de altura
+            ele não existe. O letreiro também é PRETO, e o cabeçalho é navy.
+
+            Então a marca é remontada na horizontal, que é o que toda identidade
+            faz quando muda de suporte: o símbolo fica com a cor dele, o ciano,
+            e o letreiro vira branco. O símbolo é `aria-hidden` e o `alt` é
+            vazio porque o nome vem escrito logo ao lado — anunciar "coração"
+            antes de "Diversidade em Ação" seria ruído. */}
         <span className="marca">
           <img src="/dome-branca.png" alt="DOME" className="marca__dome" />
           <span className="marca__risco" aria-hidden="true" />
-          <span className="marca__nome">Diversidade em Ação</span>
+          <span className="marca__jogo">
+            <img src="/coracao.png" alt="" aria-hidden="true" className="marca__coracao" />
+            <span className="marca__nome">Diversidade em Ação</span>
+          </span>
         </span>
 
         <div className="cabecalho__acoes">
