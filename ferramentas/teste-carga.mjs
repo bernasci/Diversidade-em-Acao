@@ -42,6 +42,24 @@ const LIMITE_MS = Number(argumento('--timeout') || 15_000)
 if (!BASE || !env.DATABASE_URL_UNPOOLED) throw new Error('Informe --url e configure DATABASE_URL_UNPOOLED.')
 if (!Number.isInteger(QUANTOS) || QUANTOS < 1 || QUANTOS > 2_000) throw new Error('Quantidade inválida (1 a 2000).')
 
+function urlApi(caminho) {
+  const base = new URL(BASE)
+  const url = new URL(`/api/${caminho}`, base)
+  for (const [chave, valor] of base.searchParams) url.searchParams.set(chave, valor)
+  return url
+}
+
+let cookieAcesso = ''
+async function iniciarAcessoAoPreview() {
+  if (!new URL(BASE).searchParams.has('_vercel_share')) return
+  const resposta = await fetch(BASE, { redirect: 'manual' })
+  const cookies = typeof resposta.headers.getSetCookie === 'function'
+    ? resposta.headers.getSetCookie()
+    : [resposta.headers.get('set-cookie')].filter(Boolean)
+  cookieAcesso = cookies.map((cookie) => cookie.split(';', 1)[0]).join('; ')
+  if (!cookieAcesso) throw new Error('A Vercel não devolveu o cookie de acesso ao preview.')
+}
+
 const lote = `carga-${Date.now()}`
 const emails = Array.from({ length: QUANTOS + 1 }, (_, i) => `${lote}-${i}@teste.local`)
 const db = new pg.Client({ connectionString: env.DATABASE_URL_UNPOOLED })
@@ -64,16 +82,23 @@ async function limpar() {
 async function chamar(caminho, corpo, token) {
   const inicio = performance.now()
   try {
-    const r = await fetch(`${BASE}/api/${caminho}`, {
+    const r = await fetch(urlApi(caminho), {
       method: 'POST',
-      headers: { 'content-type': 'application/json', ...(token ? { 'x-sessao': token } : {}) },
+      headers: {
+        'content-type': 'application/json',
+        ...(cookieAcesso ? { cookie: cookieAcesso } : {}),
+        ...(token ? { 'x-sessao': token } : {}),
+      },
       body: JSON.stringify(corpo),
       signal: AbortSignal.timeout(LIMITE_MS),
     })
     const dados = await r.json().catch(() => null)
     return { ok: r.ok, status: r.status, dados, ms: performance.now() - inicio }
   } catch (erro) {
-    return { ok: false, status: erro?.name === 'TimeoutError' ? 'timeout' : 'rede', dados: null, ms: performance.now() - inicio }
+    const status = erro?.name === 'TimeoutError'
+      ? 'timeout'
+      : erro?.cause?.code || erro?.name || 'rede'
+    return { ok: false, status, dados: null, ms: performance.now() - inicio }
   }
 }
 
@@ -95,6 +120,7 @@ const percentil = (lista, p) => {
 }
 
 try {
+  await iniciarAcessoAoPreview()
   await preparar()
 
   const aquecimento = await umaPessoa(emails[0])

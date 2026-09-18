@@ -17,6 +17,25 @@ const indiceUrl = process.argv.indexOf('--url')
 const BASE = String(indiceUrl >= 0 ? process.argv[indiceUrl + 1] : env.TESTE_URL || '').replace(/\/$/, '')
 if (!BASE || !env.DATABASE_URL_UNPOOLED) throw new Error('Informe --url e configure DATABASE_URL_UNPOOLED.')
 
+function urlApi(caminho, parametros = {}) {
+  const base = new URL(BASE)
+  const url = new URL(`/api/${caminho}`, base)
+  for (const [chave, valor] of base.searchParams) url.searchParams.set(chave, valor)
+  for (const [chave, valor] of Object.entries(parametros)) url.searchParams.set(chave, String(valor))
+  return url
+}
+
+let cookieAcesso = ''
+async function iniciarAcessoAoPreview() {
+  if (!new URL(BASE).searchParams.has('_vercel_share')) return
+  const resposta = await fetch(BASE, { redirect: 'manual' })
+  const cookies = typeof resposta.headers.getSetCookie === 'function'
+    ? resposta.headers.getSetCookie()
+    : [resposta.headers.get('set-cookie')].filter(Boolean)
+  cookieAcesso = cookies.map((cookie) => cookie.split(';', 1)[0]).join('; ')
+  if (!cookieAcesso) throw new Error('A Vercel não devolveu o cookie de acesso ao preview.')
+}
+
 const EMAIL = 'qa.descartavel@teste.local'
 const EMAIL_DEDUZIDO = 'daniel.alves.qa@teste.local'
 const db = new pg.Client({ connectionString: env.DATABASE_URL_UNPOOLED })
@@ -29,9 +48,13 @@ const ok = (cond, nome, extra = '') => {
 }
 
 async function fn(nome, corpo, token) {
-  const r = await fetch(`${BASE}/api/${nome}`, {
+  const r = await fetch(urlApi(nome), {
     method: 'POST',
-    headers: { 'content-type': 'application/json', ...(token ? { 'x-sessao': token } : {}) },
+    headers: {
+      'content-type': 'application/json',
+      ...(cookieAcesso ? { cookie: cookieAcesso } : {}),
+      ...(token ? { 'x-sessao': token } : {}),
+    },
     body: JSON.stringify(corpo),
   })
   let d = null
@@ -45,6 +68,7 @@ async function limpar() {
 }
 
 console.log('\n--- preparo ---')
+await iniciarAcessoAoPreview()
 await limpar()
 await db.query(`
   insert into public.elegiveis (email,nome,area,empresa,matricula) values
@@ -62,6 +86,7 @@ try {
   ok(e.d?.jogador?.nome === 'Ana Descartavel de Testes' && e.d?.jogador?.empresa === 'QA Ltda', 'cadastro vem da lista')
   ok(Array.isArray(e.d?.progresso) && e.d.progresso.length === 0, 'progresso começa vazio')
   const T = e.d.token
+  if (typeof T !== 'string') throw new Error(`A entrada não devolveu sessão (status ${e.status}).`)
 
   const deduzido = await fn('entrar', { email: EMAIL_DEDUZIDO })
   ok(deduzido.d?.jogador?.nome === 'Daniel Alves Qa', 'nome deduzido do e-mail', deduzido.d?.jogador?.nome)
@@ -97,7 +122,9 @@ try {
   const protegido = await fn('jogar', { acao: 'perfil', pts: 9999, nome: 'Impostor', area: 'Diretoria', empresa: 'Outra' }, T)
   ok(protegido.d?.jogador?.pts === 12 && protegido.d?.jogador?.nome === 'Ana Descartavel de Testes', 'campos protegidos ignorados')
 
-  const rankingResposta = await fetch(`${BASE}/api/ranking?limit=100`)
+  const rankingResposta = await fetch(urlApi('ranking', { limit: 100 }), {
+    headers: cookieAcesso ? { cookie: cookieAcesso } : {},
+  })
   const ranking = await rankingResposta.json()
   const linha = ranking.find((l) => l.nome === 'Ana Testes')
   ok(rankingResposta.status === 200 && !!linha, 'participante opt-in aparece no ranking')
