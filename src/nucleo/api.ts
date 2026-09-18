@@ -144,7 +144,7 @@ export async function buscarRanking(limite = 100): Promise<LinhaRanking[]> {
   const url = `${URL_BASE}/api/ranking?limit=${limite}`
   try {
     const r = await fetch(url, {
-      signal: AbortSignal.timeout(TEMPO_LIMITE),
+      signal: AbortSignal.timeout(TEMPO_POR_TENTATIVA),
     })
     if (!r.ok) return []
     return (await r.json()) as LinhaRanking[]
