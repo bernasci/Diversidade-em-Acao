@@ -10,19 +10,24 @@
     "preview": "vite preview",
     "checar": "tsc --noEmit",
     "importar": "node ferramentas/importar-elegiveis.mjs",
-    "fumaca": "node ferramentas/fumaca.mjs",
+    "fumaca": "node ferramentas/fumaca-neon.mjs",
+    "fumaca:supabase": "node ferramentas/fumaca.mjs",
     "carga": "node ferramentas/teste-carga.mjs"
   },
   "dependencies": {
+    "@neondatabase/serverless": "^1.1.0",
     "lucide-react": "^1.29.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "react-router-dom": "^7.1.1"
   },
   "devDependencies": {
+    "@types/node": "^24.13.5",
+    "@types/pg": "^8.23.1",
     "@types/react": "^19.0.2",
     "@types/react-dom": "^19.0.2",
     "@vitejs/plugin-react": "^4.3.4",
+    "pg": "^8.23.0",
     "typescript": "~5.7.2",
     "vite": "^6.0.7"
   },

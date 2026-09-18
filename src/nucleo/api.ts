@@ -1,46 +1,32 @@
 /* ==========================================================================
-   api.ts — único ponto de contato com o Supabase.
+   api.ts — único ponto de contato do navegador com o servidor.
 
    Duas portas, e só duas:
 
-   1. As Edge Functions `entrar` e `jogar`, que rodam com service_role e são
-      as donas de tudo que dá vantagem (gabarito, pontos, progresso).
-   2. A view materializada `ranking_publico`, lida direto com a anon key —
-      é a ÚNICA coisa no banco que `anon` enxerga.
+   1. As funções Vercel `entrar` e `jogar`, que são as donas de tudo que dá
+      vantagem (gabarito, pontos, progresso).
+   2. A função pública `ranking`, que devolve somente os campos exibidos.
 
-   Não existe cliente do Supabase aqui, de propósito: o SDK pesa mais que o
-   app inteiro e as duas chamadas que fazemos são `fetch` de dez linhas. Foi
-   a mesma decisão do DOME GAMES (`app/js/nucleo/supabase.js`), e pelo mesmo
-   motivo: isto abre no 4G, no celular de quem está trabalhando.
+   Não existe cliente de banco no navegador. O segredo do Neon vive apenas na
+   Vercel e o front faz `fetch` para o próprio domínio.
    ========================================================================== */
 
 import { ErroApi, type CodigoErro, type EstadoServidor, type LinhaRanking, type RespostaCredito, type RespostaEntrar, type RespostaQuiz, type IdMissao } from './tipos'
 import type { TipoJogo } from '../conteudo/missoes'
 import { lerToken } from './sessao'
-import { SUPABASE_ANON_PADRAO, SUPABASE_URL_PADRAO } from './projeto'
 
-/* O `.env` vence os valores de `projeto.ts`. Assim o app funciona ao clonar e
-   ao publicar, sem configuração nenhuma, e ainda dá para apontar para um
-   banco de homologação sem tocar no código. */
-const URL_BASE = (import.meta.env.VITE_SUPABASE_URL || SUPABASE_URL_PADRAO) as string
-const ANON = (import.meta.env.VITE_SUPABASE_ANON || SUPABASE_ANON_PADRAO) as string
+/* Em produção a API mora no mesmo domínio do site. `VITE_API_URL` existe só
+   para desenvolvimento e para testar uma implantação de preview. */
+const URL_BASE = String(import.meta.env.VITE_API_URL || '').replace(/\/$/, '')
 
-export const CONFIGURADO = Boolean(URL_BASE && ANON)
-
-/* Só aparece se alguém esvaziar os valores de `projeto.ts` — o que é um jeito
-   legítimo de forçar a configuração por ambiente, então a mensagem explica os
-   dois caminhos. */
-export const MENSAGEM_SEM_CONFIG = import.meta.env.DEV
-  ? 'O app não está conectado a nenhum banco. Preencha src/nucleo/projeto.ts ou defina VITE_SUPABASE_URL e VITE_SUPABASE_ANON no .env, e reinicie o servidor.'
-  : 'O app não está conectado a nenhum banco. Preencha src/nucleo/projeto.ts ou defina VITE_SUPABASE_URL e VITE_SUPABASE_ANON nas variáveis de ambiente, e publique de novo.'
+export const CONFIGURADO = true
+export const MENSAGEM_SEM_CONFIG = ''
 
 const TEMPO_LIMITE = 15_000
 
 function cabecalhos(comSessao: boolean): HeadersInit {
   const h: Record<string, string> = {
     'content-type': 'application/json',
-    apikey: ANON,
-    authorization: `Bearer ${ANON}`,
   }
   if (comSessao) {
     const t = lerToken()
@@ -60,7 +46,7 @@ async function chamar<T>(funcao: 'entrar' | 'jogar', corpo: unknown, comSessao =
   // sempre quando o 4G cai no meio da requisição.
   let resposta: Response
   try {
-    resposta = await fetch(`${URL_BASE}/functions/v1/${funcao}`, {
+    resposta = await fetch(`${URL_BASE}/api/${funcao}`, {
       method: 'POST',
       headers: cabecalhos(comSessao),
       body: JSON.stringify(corpo),
@@ -139,20 +125,17 @@ export function nomeCurto(nome: string): string {
 }
 
 /* ------------------------------- RANKING -------------------------------
-   Leitura direta na view materializada. É o único endpoint do PostgREST
-   aberto ao `anon`, e ele expõe o nome já encurtado, área, empresa, avatar e
-   pontos de quem optou por aparecer — nunca e-mail, nome completo ou id.
+   A API devolve nome já encurtado, área, empresa, avatar e pontos de quem
+   optou por aparecer — nunca e-mail, nome completo ou id.
 
    Sem polling: quem quiser ver de novo, recarrega. Com 5.602 pessoas, um
    `setInterval` de 15s como o do DOME GAMES estoura sozinho os 5 GB de
    egress do plano Free.
    ------------------------------------------------------------------------ */
 export async function buscarRanking(limite = 100): Promise<LinhaRanking[]> {
-  if (!CONFIGURADO) return []
-  const url = `${URL_BASE}/rest/v1/ranking_publico?select=posicao,nome,area,empresa,emoji,cor,moldura,pts&order=posicao.asc&limit=${limite}`
+  const url = `${URL_BASE}/api/ranking?limit=${limite}`
   try {
     const r = await fetch(url, {
-      headers: { apikey: ANON, authorization: `Bearer ${ANON}` },
       signal: AbortSignal.timeout(TEMPO_LIMITE),
     })
     if (!r.ok) return []

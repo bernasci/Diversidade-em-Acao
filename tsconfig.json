@@ -20,6 +20,6 @@
     "noFallthroughCasesInSwitch": true,
     "exactOptionalPropertyTypes": false
   },
-  "include": ["src"],
+  "include": ["src", "api"],
   "exclude": ["supabase/functions"]
 }

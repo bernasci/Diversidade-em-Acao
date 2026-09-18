@@ -30,3 +30,8 @@ ferramentas/*.xlsx
 # na pasta e não são do projeto.
 desktop.ini
 certificado-previa.png
+
+# Configuração local criada pelas integrações de desenvolvimento.
+.env*
+.agents/
+skills-lock.json
