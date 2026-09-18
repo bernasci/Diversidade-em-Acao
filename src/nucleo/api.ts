@@ -22,7 +22,8 @@ const URL_BASE = String(import.meta.env.VITE_API_URL || '').replace(/\/$/, '')
 export const CONFIGURADO = true
 export const MENSAGEM_SEM_CONFIG = ''
 
-const TEMPO_LIMITE = 15_000
+const TEMPO_POR_TENTATIVA = 12_000
+const TENTATIVAS = 2
 
 function cabecalhos(comSessao: boolean): HeadersInit {
   const h: Record<string, string> = {
@@ -42,17 +43,24 @@ async function chamar<T>(funcao: 'entrar' | 'jogar', corpo: unknown, comSessao =
     throw new ErroApi('nao-configurado', MENSAGEM_SEM_CONFIG)
   }
 
-  // AbortSignal.timeout é o que impede a tela de ficar em "carregando" para
-  // sempre quando o 4G cai no meio da requisição.
-  let resposta: Response
-  try {
-    resposta = await fetch(`${URL_BASE}/api/${funcao}`, {
-      method: 'POST',
-      headers: cabecalhos(comSessao),
-      body: JSON.stringify(corpo),
-      signal: AbortSignal.timeout(TEMPO_LIMITE),
-    })
-  } catch {
+  // Uma segunda tentativa curta absorve picos de conexão no início do evento.
+  // As operações do servidor são idempotentes: repetir nunca duplica pontos.
+  let resposta: Response | null = null
+  for (let tentativa = 0; tentativa < TENTATIVAS && !resposta; tentativa++) {
+    try {
+      resposta = await fetch(`${URL_BASE}/api/${funcao}`, {
+        method: 'POST',
+        headers: cabecalhos(comSessao),
+        body: JSON.stringify(corpo),
+        signal: AbortSignal.timeout(TEMPO_POR_TENTATIVA),
+      })
+    } catch {
+      if (tentativa + 1 < TENTATIVAS) {
+        await new Promise((resolve) => setTimeout(resolve, 250 + Math.random() * 500))
+      }
+    }
+  }
+  if (!resposta) {
     throw new ErroApi('sem-conexao', 'Não conseguimos falar com o servidor. Verifique sua conexão e tente de novo.')
   }
 

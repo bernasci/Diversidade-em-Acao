@@ -81,25 +81,30 @@ async function limpar() {
 
 async function chamar(caminho, corpo, token) {
   const inicio = performance.now()
-  try {
-    const r = await fetch(urlApi(caminho), {
-      method: 'POST',
-      headers: {
-        'content-type': 'application/json',
-        ...(cookieAcesso ? { cookie: cookieAcesso } : {}),
-        ...(token ? { 'x-sessao': token } : {}),
-      },
-      body: JSON.stringify(corpo),
-      signal: AbortSignal.timeout(LIMITE_MS),
-    })
-    const dados = await r.json().catch(() => null)
-    return { ok: r.ok, status: r.status, dados, ms: performance.now() - inicio }
-  } catch (erro) {
-    const status = erro?.name === 'TimeoutError'
-      ? 'timeout'
-      : erro?.cause?.code || erro?.name || 'rede'
-    return { ok: false, status, dados: null, ms: performance.now() - inicio }
+  let ultimoErro
+  for (let tentativa = 0; tentativa < 2; tentativa++) {
+    try {
+      const r = await fetch(urlApi(caminho), {
+        method: 'POST',
+        headers: {
+          'content-type': 'application/json',
+          ...(cookieAcesso ? { cookie: cookieAcesso } : {}),
+          ...(token ? { 'x-sessao': token } : {}),
+        },
+        body: JSON.stringify(corpo),
+        signal: AbortSignal.timeout(LIMITE_MS),
+      })
+      const dados = await r.json().catch(() => null)
+      return { ok: r.ok, status: r.status, dados, ms: performance.now() - inicio }
+    } catch (erro) {
+      ultimoErro = erro
+      if (tentativa === 0) await new Promise((resolve) => setTimeout(resolve, 250 + Math.random() * 500))
+    }
   }
+  const status = ultimoErro?.name === 'TimeoutError'
+    ? 'timeout'
+    : ultimoErro?.cause?.code || ultimoErro?.name || 'rede'
+  return { ok: false, status, dados: null, ms: performance.now() - inicio }
 }
 
 async function umaPessoa(email) {
