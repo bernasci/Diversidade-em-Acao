@@ -14,18 +14,28 @@
   <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
 
   <!-- Divulgação: é esta imagem que aparece quando o link é colado no
-       WhatsApp, no Teams ou num e-mail.
+       LinkedIn, no WhatsApp, no Teams ou num e-mail.
 
-       ATENÇÃO: WhatsApp e a maior parte dos leitores exigem URL ABSOLUTA
-       aqui. Depois do deploy, troque as duas linhas `content` abaixo pelo
-       endereço real, por exemplo
-       https://diversidade-em-acao.vercel.app/divulgacao.png -->
+       AS URLS SÃO ABSOLUTAS, e é obrigatório. Open Graph não resolve caminho
+       relativo: quem lê a página é um robô que não está no mesmo domínio, e
+       um `/divulgacao.png` chega até ele como um caminho sem casa. Ficaram
+       relativas desde o começo e o efeito era silencioso — o link colado saía
+       sem imagem nenhuma, e ninguém vincula uma coisa à outra.
+
+       O domínio está escrito à mão porque HTML estático não tem variável, e
+       o robô do LinkedIn lê o arquivo servido, não o app em execução. Trocou
+       de domínio, troque as três linhas abaixo. -->
   <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://diversidade-em-acao.vercel.app/" />
   <meta property="og:title" content="Diversidade em Ação" />
-  <meta property="og:description" content="Cinco missões sobre a inclusão de Pessoas com Deficiência no mundo do trabalho. Cerca de 10 minutos cada." />
-  <meta property="og:image" content="/divulgacao.png" />
+  <meta property="og:description" content="Três missões sobre a inclusão de Pessoas com Deficiência no mundo do trabalho. Cerca de 15 minutos cada." />
+  <meta property="og:image" content="https://diversidade-em-acao.vercel.app/divulgacao.png" />
+  <meta property="og:image:width" content="2400" />
+  <meta property="og:image:height" content="1260" />
+  <meta property="og:image:alt" content="Diversidade em Ação — Semana da Diversidade, Equidade e Inclusão da DOME" />
+  <meta property="og:locale" content="pt_BR" />
   <meta name="twitter:card" content="summary_large_image" />
-  <meta name="twitter:image" content="/divulgacao.png" />
+  <meta name="twitter:image" content="https://diversidade-em-acao.vercel.app/divulgacao.png" />
 
   <!-- Uma família só, em quatro pesos. UI de produto não precisa de par
        display + texto, e cada arquivo a menos é meio segundo a menos no 4G —

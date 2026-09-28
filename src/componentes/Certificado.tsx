@@ -33,6 +33,7 @@ import { useEstado } from '../nucleo/estado'
 import { MISSOES, PTS_MAX, TOTAL_PERGUNTAS } from '../conteudo/missoes'
 import { acertosTotais, medalhaDe, MEDALHAS } from '../nucleo/progresso'
 import { A, desenharCertificado, L } from './certificado-desenho'
+import { enderecoDoCompositor, textoDoPost } from '../conteudo/compartilhar'
 import type { Medalha } from '../nucleo/tipos'
 
 /** As mesmas quatro cores de `tokens.css`. Aqui elas não podem vir da
@@ -44,11 +45,51 @@ const COR_MEDALHA: Record<Medalha, string> = {
   platina: '#0E6A7D',
 }
 
+/**
+ * Celular ou não.
+ *
+ * NÃO BASTA PERGUNTAR se o navegador sabe compartilhar arquivo: o Chrome do
+ * Windows sabe, e abre a folha de compartilhamento do sistema — onde o
+ * LinkedIn quase nunca está, porque quase ninguém instala o app dele no
+ * desktop. O botão diria "Publicar no LinkedIn" e abriria um painel do Windows
+ * com o Bluetooth e o Mail. Preferir o compositor no navegador, ali, é o que
+ * faz o botão cumprir o que promete.
+ *
+ * `userAgentData.mobile` é o teste certo e é o que os navegadores novos
+ * respondem. O resto é para os que ainda não têm: a regex pega Android e
+ * iPhone, e o par Macintosh + toque pega o iPad, que desde o iPadOS 13 se
+ * declara Mac.
+ */
+function ehCelular(): boolean {
+  if (typeof navigator === 'undefined') return false
+  const dados = (navigator as { userAgentData?: { mobile?: boolean } }).userAgentData
+  if (typeof dados?.mobile === 'boolean') return dados.mobile
+  const ua = navigator.userAgent
+  return /Android|iPhone|iPod/i.test(ua) || (/Macintosh/.test(ua) && navigator.maxTouchPoints > 1)
+}
+
+/** O mesmo nome no download e no arquivo que vai para o compartilhamento —
+    é ele que aparece embaixo da miniatura no app do LinkedIn. */
+function nomeDoArquivo(nome: string): string {
+  const limpo = nome
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[̀-ͯ]/g, '')
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-|-$/g, '')
+  return `certificado-diversidade-em-acao-${limpo || 'participante'}.png`
+}
+
 export default function Certificado() {
   const { jogador, progresso } = useEstado()
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const [coracao, setCoracao] = useState<HTMLImageElement | null>(null)
   const [dome, setDome] = useState<HTMLImageElement | null>(null)
+  /* O PNG é preparado ASSIM QUE A FOLHA FICA PRONTA, e não no clique.
+     `navigator.share` exige gesto do usuário, e em Safari e Firefox o gesto se
+     perde no primeiro `await` — gerar o arquivo dentro do clique funcionaria no
+     Chrome e falharia calado no iPhone, que é metade do público. */
+  const [arquivo, setArquivo] = useState<File | null>(null)
 
   const medalha = medalhaDe(progresso)
   const acertos = acertosTotais(progresso)
@@ -80,22 +121,60 @@ export default function Certificado() {
   useEffect(() => {
     const c = canvasRef.current?.getContext('2d')
     if (!c || !nome) return
-    void desenharCertificado(c, { nome, pts, acertos, medalha: selo, data }, { coracao, dome })
+    let vivo = true
+    void desenharCertificado(c, { nome, pts, acertos, medalha: selo, data }, { coracao, dome }).then(
+      () => {
+        if (!vivo) return
+        canvasRef.current?.toBlob((b) => {
+          if (vivo && b) setArquivo(new File([b], nomeDoArquivo(nome), { type: 'image/png' }))
+        }, 'image/png')
+      },
+    )
+    return () => {
+      vivo = false
+    }
     // `selo` é recriado a cada render; a dependência é a medalha que o gerou.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [nome, pts, acertos, medalha, data, coracao, dome])
 
   if (!jogador) return null
 
+  /* No celular o certificado VAI JUNTO no post: a folha de compartilhamento do
+     sistema entrega o PNG ao app do LinkedIn e o texto vai preenchido. É o
+     único caminho em que a imagem da pessoa entra sozinha — o link de
+     compartilhamento do LinkedIn carrega URL e nada mais.
+
+     No desktop não existe equivalente: abre-se o compositor com o texto, e a
+     pessoa anexa o arquivo que o botão ao lado baixa. */
+  const podeCompartilharArquivo =
+    Boolean(arquivo) &&
+    ehCelular() &&
+    typeof navigator.canShare === 'function' &&
+    navigator.canShare({ files: [arquivo as File] })
+
+  function publicar() {
+    const texto = textoDoPost({
+      medalha: medalha ? MEDALHAS[medalha].nome : null,
+      url: window.location.origin,
+    })
+
+    if (podeCompartilharArquivo && arquivo) {
+      void navigator
+        .share({ files: [arquivo], text: texto })
+        .catch(() => {
+          /* a pessoa fechou a folha de compartilhamento: não é erro */
+        })
+      return
+    }
+
+    window.open(enderecoDoCompositor(texto), '_blank', 'noopener,noreferrer')
+  }
+
   function baixar() {
     const cv = canvasRef.current
     if (!cv) return
     const a = document.createElement('a')
-    a.download = `certificado-diversidade-em-acao-${(jogador?.nome ?? 'participante')
-      .toLowerCase()
-      .normalize('NFD')
-      .replace(/[̀-ͯ]/g, '')
-      .replace(/[^a-z0-9]+/g, '-')}.png`
+    a.download = nomeDoArquivo(jogador?.nome ?? 'participante')
     a.href = cv.toDataURL('image/png')
     a.click()
   }
@@ -119,7 +198,19 @@ export default function Certificado() {
         <button type="button" className="botao botao--primario" onClick={baixar}>
           Baixar certificado (PNG)
         </button>
+        <button type="button" className="botao botao--secundario" onClick={publicar}>
+          Publicar no LinkedIn
+        </button>
       </div>
+
+      {/* Só aparece onde a imagem NÃO vai junto. No celular a frase seria
+          mentira: lá o certificado entra no post sozinho. */}
+      {!podeCompartilharArquivo && (
+        <p className="meta">
+          O LinkedIn abre com o texto pronto — você edita antes de publicar. A imagem o LinkedIn não
+          aceita por link: baixe o certificado ao lado e arraste para o post.
+        </p>
+      )}
 
       <details className="jogo__como">
         <summary>Ler o conteúdo do certificado em texto</summary>
