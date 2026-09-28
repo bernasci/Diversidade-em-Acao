@@ -90,12 +90,12 @@ export const MISSOES: Missao[] = [
     tema: 'O que é deficiência e como falar sobre isso',
     tagline: 'O que a deficiência é de verdade, o nome certo de cada coisa e o que fazer quando você não sabe.',
     aprender: [
-      'Deficiência não é a característica da pessoa isolada: é o encontro entre uma condição de longo prazo e as barreiras do ambiente. Tire a barreira e a limitação diminui — é por isso que a mesma pessoa é "deficiente" num prédio e não é em outro.',
-      'O termo correto é "pessoa com deficiência" — pessoa primeiro, deficiência depois. "Portador", "deficiente", "especial" e "excepcional" saíram de uso: ninguém porta uma deficiência como quem porta um documento.',
-      'As deficiências podem ser física, visual, auditiva, intelectual, psicossocial ou múltipla — e o Transtorno do Espectro Autista entra nessa conta. Boa parte delas não se vê: dá para trabalhar anos ao lado de alguém sem saber.',
-      'Fale com a pessoa, não com o acompanhante ou o intérprete. Pergunte antes de ajudar e aceite o "não, obrigado" sem insistir.',
-      'A cadeira de rodas, a bengala e o cão-guia são extensões do corpo da pessoa: não se toca, não se apoia, não se acaricia sem permissão.',
-      'Na dúvida sobre como se referir a alguém ou como ajudar, pergunte à própria pessoa. É a única fonte confiável — e perguntar nunca foi falta de educação.',
+      'Deficiência não está só na pessoa: ela surge da relação entre uma condição de longo prazo e as barreiras do ambiente.',
+      'O termo correto é "pessoa com deficiência". Termos como "portador", "especial" e "excepcional" não são mais usados.',
+      'As deficiências podem ser físicas, visuais, auditivas, intelectuais, psicossociais ou múltiplas. Muitas delas não são visíveis.',
+      'Fale diretamente com a pessoa. Antes de ajudar, pergunte e respeite a resposta.',
+      'Cadeira de rodas, bengala e cão-guia são extensões da autonomia da pessoa. Não toque sem permissão.',
+      'Na dúvida sobre como se referir ou ajudar, pergunte à própria pessoa.',
     ],
     jogos: [
       {
@@ -112,14 +112,11 @@ export const MISSOES: Missao[] = [
     tema: 'Barreiras, adaptações e capacitismo',
     tagline: 'A barreira que ninguém vê, o elogio que diminui, a ajuda que atrapalha.',
     aprender: [
-      'As barreiras aparecem em seis formas: arquitetônica (o degrau), atitudinal (o preconceito), comunicacional (a informação que não chega), tecnológica, metodológica (o jeito de fazer as coisas) e urbanística.',
-      'A barreira atitudinal é a mais cara e a mais invisível: nenhuma rampa resolve um gestor que presume que a pessoa não dá conta.',
-      'Adaptação razoável é o ajuste que coloca a pessoa em igualdade de condições — mesa mais alta, horário diferente, leitor de tela, intérprete de Libras. A conta é da empresa, e na maioria dos casos é baixa ou zero.',
-      'Acessibilidade digital tem receita conhecida: legenda em vídeo, texto alternativo em imagem, contraste suficiente e tudo operável por teclado — coisas que também melhoram a vida de quem não tem deficiência nenhuma. Tecnologia assistiva é o resto do arsenal: leitor de tela, teclado adaptado, lupa eletrônica, aparelho auditivo.',
-      'Capacitismo é o preconceito que trata a pessoa com deficiência como incapaz, frágil ou inspiradora só por existir. Quase sempre chega vestido de gentileza.',
-      '"Você é um exemplo de superação" transforma a rotina de alguém em espetáculo motivacional para os outros. Trabalhar, estudar e pagar contas não é façanha — é vida adulta.',
-      'Superproteção também exclui: tirar tarefas, evitar dar feedback difícil ou "poupar" a pessoa de um projeto desafiador trava a carreira dela com a melhor das intenções.',
-      'Ter viés não faz de ninguém má pessoa — todo mundo tem. O que conta é perceber e corrigir antes que ele decida uma contratação, uma promoção ou uma escala, como quando se presume que a pessoa não vai dar conta da viagem sem nunca ter perguntado a ela.',
+      'As barreiras podem ser arquitetônicas, atitudinais, comunicacionais, tecnológicas, metodológicas ou urbanísticas. A barreira atitudinal é uma das mais invisíveis: o preconceito.',
+      'Adaptação razoável garante igualdade de oportunidades com ajustes simples e acessíveis, por exemplo a acessibilidade digital inclui legendas, texto alternativo, contraste adequado e navegação por teclado.',
+      'Capacitismo é o preconceito que trata pessoas com deficiência como incapazes ou inferiores.',
+      'Incluir não é tratar alguém como herói, mas reconhecer seus direitos e capacidades. Superproteção também exclui e pode limitar oportunidades de desenvolvimento.',
+      'Reconhecer os próprios vieses é o primeiro passo para decisões mais justas.',
     ],
     jogos: [
       {
@@ -136,11 +133,11 @@ export const MISSOES: Missao[] = [
     tema: 'Carreira, liderança e inclusão no dia a dia',
     tagline: 'Contratar é o começo. Ficar, crescer e ser promovido é o assunto.',
     aprender: [
-      'Contratar e parar por aí é o erro mais comum: sem plano de carreira, a pessoa entra, não cresce e vai embora — e a vaga volta a abrir todo ano, como se o problema fosse o mercado.',
-      'Processo seletivo inclusivo começa no anúncio: descrever a vaga pelas atividades reais, dizer que o local é acessível e perguntar de que adaptação a pessoa precisa na entrevista.',
-      'Feedback é direito. Não dar retorno difícil "para não constranger" é paternalismo, e priva a pessoa da informação de que ela precisa para crescer.',
-      'Quem recebe um colega com deficiência no time não precisa de treinamento especial: precisa tratar como colega, combinar o que for prático e perguntar em vez de supor.',
-      'Inclusão que depende de uma pessoa só não sobrevive à troca de gestor. Vira política quando está no processo: na vaga, no onboarding, na avaliação e na promoção.',
+      'Contratar é só o começo. Inclusão também envolve desenvolvimento e crescimento profissional.',
+      'Um processo seletivo inclusivo começa com vagas acessíveis e requisitos claros.',
+      'Feedback é um direito e faz parte do desenvolvimento de qualquer pessoa.',
+      'Receba a pessoa como colega: pergunte, combine e evite suposições.',
+      'A inclusão se fortalece quando faz parte dos processos da empresa.',
     ],
     jogos: [
       {
