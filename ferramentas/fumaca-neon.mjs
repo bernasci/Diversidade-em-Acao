@@ -108,11 +108,34 @@ try {
   ok((await fn('jogar', { acao: 'responder', missao: 'm1', pergunta: 99, escolha: 0 }, T)).status === 400, 'pergunta inválida recusada')
 
   console.log('\n--- mini-game e bônus ---')
+  /* O relógio do bônus é do servidor. Iniciar e concluir no mesmo segundo é
+     exatamente o que um trapaceiro faria pelo DevTools — e cai abaixo do piso
+     de 10s da memória: credita os 10 da conclusão e bônus zero, mesmo com o
+     cliente jurando `segundos: 42`. */
+  const inicio = await fn('jogar', { acao: 'jogo-iniciar', missao: 'm1', jogo: 'memoria' }, T)
+  ok(inicio.d?.ok === true, 'início do mini-game registrado no servidor')
+  ok((await fn('jogar', { acao: 'jogo-iniciar', missao: 'm1', jogo: 'mito' }, T)).status === 400, 'início de jogo de outra missão recusado')
   const jogo = await fn('jogar', { acao: 'jogo-concluir', missao: 'm1', jogo: 'memoria', resultado: { acertos: 6, total: 6, segundos: 42 } }, T)
   ok(jogo.d?.pontos === 10 && jogo.d?.total === 12, 'mini-game credita 10 pontos')
+  ok(jogo.d?.bonus_tempo === 0 && jogo.d?.segundos < 10, 'tempo abaixo do piso não dá bônus (servidor ignora o segundos do cliente)', `bônus ${jogo.d?.bonus_tempo}, ${jogo.d?.segundos}s`)
   const jogo2 = await fn('jogar', { acao: 'jogo-concluir', missao: 'm1', jogo: 'memoria', resultado: { acertos: 6, total: 6, segundos: 9 } }, T)
   ok(jogo2.d?.ja === true && jogo2.d?.pontos === 0, 'mini-game repetido não pontua')
-  ok((await fn('jogar', { acao: 'jogo-concluir', missao: 'm2', jogo: 'mito', resultado: { acertos: 3, total: 3 } }, T)).status === 400, 'resultado impossível recusado')
+  // Missão 1, e não 2: a Missão 2 passa parte da campanha fechada pelo
+  // calendário, e aí a recusa viria pelo cadeado (403), não pelo total (400)
+  // — o teste ficaria verde pelo motivo errado. O banco confere o total antes
+  // de creditar, então a memória já concluída não atrapalha.
+  ok((await fn('jogar', { acao: 'jogo-concluir', missao: 'm1', jogo: 'memoria', resultado: { acertos: 3, total: 3 } }, T)).status === 400, 'resultado impossível recusado')
+
+  /* CALENDÁRIO: missão fechada não credita. A sonda manda um resultado
+     impossível de propósito — fechada, o servidor recusa pelo calendário
+     (403); aberta, recusa pelo total (400). Nas duas nada é creditado, e o
+     teste não vira bomba-relógio no dia em que a última missão abre. */
+  const sonda = await fn('jogar', { acao: 'jogo-concluir', missao: 'm3', jogo: 'cenario', resultado: { acertos: 0, total: 999 } }, T)
+  if (sonda.status === 403) {
+    ok(sonda.d?.erro === 'etapa-bloqueada' && /abre/.test(sonda.d?.mensagem ?? ''), 'missão fechada pelo calendário recusa crédito', sonda.d?.mensagem)
+  } else {
+    ok(sonda.status === 400, 'missão 3 já aberta pelo calendário (sonda recusada só pelo total)', String(sonda.status))
+  }
   const bonus = await fn('jogar', { acao: 'bonus' }, T)
   ok(bonus.d?.ja === false && bonus.d?.pontos === 0 && bonus.d?.total === 12, 'bônus negado antes da conclusão')
 

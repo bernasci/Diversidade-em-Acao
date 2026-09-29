@@ -29,10 +29,13 @@ import { useEstado } from '../nucleo/estado'
 import { useAvisos } from '../componentes/avisos'
 import { Carregando, Nota, Selo } from '../componentes/comuns'
 import Quiz from '../componentes/Quiz'
-import { MISSAO_POR_ID, MISSOES, PERGUNTAS_POR_MISSAO, PTS_JOGO, type TipoJogo } from '../conteudo/missoes'
+import PartidaCronometrada from '../componentes/PartidaCronometrada'
+import { MISSAO_POR_ID, MISSOES, PERGUNTAS_POR_MISSAO, PTS_JOGO, PTS_TEMPO, type TipoJogo } from '../conteudo/missoes'
 import { fezJogo, missaoCompleta, quizCompleto, tarefaDoJogo } from '../nucleo/progresso'
 import { ErroApi, type IdMissao } from '../nucleo/tipos'
 import type { PropsJogo, ResultadoJogo } from '../jogos/contrato'
+import { useAgora } from '../nucleo/agora'
+import { estaAberta, rotuloAbertura } from '../../api/_lib/calendario'
 
 const JOGOS: Record<TipoJogo, LazyExoticComponent<ComponentType<PropsJogo>>> = {
   memoria: lazy(() => import('../jogos/Memoria')),
@@ -50,6 +53,7 @@ export default function TelaMissao() {
   const { progresso, registrar } = useEstado()
   const { avisar, comemorar } = useAvisos()
   const [etapa, setEtapa] = useState<Etapa>('aprender')
+  const agora = useAgora()
 
   const missao = id && id in MISSAO_POR_ID ? MISSAO_POR_ID[id as IdMissao] : null
 
@@ -63,7 +67,16 @@ export default function TelaMissao() {
         const c = await concluirJogo(missao.id, tipo, r)
         registrar(missao.id, tarefaDoJogo(tipo), c.pontos, c.total)
         if (!c.ja) {
-          avisar(`+${c.pontos} pontos`, 'ok')
+          /* O aviso separa as duas parcelas: saber que a rapidez rendeu +7 é o
+             que dá sentido ao cronômetro. O tempo mostrado é o do servidor,
+             o mesmo que calculou o bônus. */
+          const bonus = c.bonus_tempo ?? 0
+          avisar(
+            bonus > 0
+              ? `+${c.pontos} pontos — ${c.pontos - bonus} pela conclusão e ${bonus} pela rapidez (${c.segundos}s)`
+              : `+${c.pontos} pontos`,
+            'ok',
+          )
           comemorar(30)
         }
       } catch (e) {
@@ -77,6 +90,40 @@ export default function TelaMissao() {
   )
 
   if (!missao) return <Navigate to="/" replace />
+
+  /* MISSÃO FECHADA, alcançada por link direto ou por favorito: mostra o que
+     ela é e quando abre, e só. Nem o "Aprender" aparece — o conteúdo da etapa
+     é parte do que o calendário segura, não só o jogo e o quiz. O servidor
+     recusa o crédito de qualquer jeito; isto é para a pessoa não descobrir
+     isso depois de jogar dez minutos à toa. */
+  if (!estaAberta(missao.id, agora)) {
+    const n = MISSOES.findIndex((m) => m.id === missao.id) + 1
+    return (
+      <div className="pilha-g">
+        <p className="meta">
+          <Link to="/">← Todas as missões</Link>
+        </p>
+        <header className="heroi">
+          <div className="pilha-2">
+            <p className="meta">
+              Missão {n} de {MISSOES.length} · {missao.tema}
+            </p>
+            <h1>{missao.nome}</h1>
+            <p>{missao.tagline}</p>
+          </div>
+        </header>
+        <Nota tipo="info" ico="🔒">
+          <b>Esta etapa abre na {rotuloAbertura(missao.id)}.</b> Uma nova missão é liberada a cada
+          dia da Semana. Enquanto isso, você pode concluir as que já estão abertas.
+        </Nota>
+        <div className="acoes">
+          <Link className="botao botao--primario" to="/">
+            Voltar para a jornada
+          </Link>
+        </div>
+      </div>
+    )
+  }
 
   const quizFeito = quizCompleto(progresso, missao.id)
   const completa = missaoCompleta(progresso, missao.id)
@@ -174,7 +221,7 @@ export default function TelaMissao() {
               <div className="linha">
                 <h2 id="t-jogo">{jogoAtual.nome}</h2>
                 <Selo estado={feito ? 'ok' : 'neutro'}>
-                  {feito ? 'Concluído' : `Vale ${PTS_JOGO} pontos`}
+                  {feito ? 'Concluído' : `Vale até ${PTS_JOGO + PTS_TEMPO} pontos`}
                 </Selo>
               </div>
               <p className="meta">{jogoAtual.como}</p>
@@ -182,13 +229,19 @@ export default function TelaMissao() {
               {/* A `key` reinicia o jogo ao trocar de etapa. Sem ela, os dois
                   mini-games da missão compartilhariam a instância montada e o
                   segundo abriria com o tabuleiro do primeiro. */}
-              <Suspense fallback={<Carregando texto="Preparando o jogo…" linhas={4} />}>
-                <Jogo
-                  key={jogoAtual.tipo}
-                  aoConcluir={(r) => aoConcluirJogo(jogoAtual.tipo, r)}
-                  jaFeito={feito}
-                />
-              </Suspense>
+              <PartidaCronometrada key={jogoAtual.tipo} missao={missao.id} jogo={jogoAtual.tipo} jaFeito={feito}>
+                {(aoTerminar) => (
+                  <Suspense fallback={<Carregando texto="Preparando o jogo…" linhas={4} />}>
+                    <Jogo
+                      aoConcluir={(r) => {
+                        aoTerminar()
+                        void aoConcluirJogo(jogoAtual.tipo, r)
+                      }}
+                      jaFeito={feito}
+                    />
+                  </Suspense>
+                )}
+              </PartidaCronometrada>
 
               {seguinte && (
                 <div className="acoes">
@@ -216,7 +269,19 @@ export default function TelaMissao() {
         <Nota tipo="ok" vivo>
           <b>Missão concluída.</b>
           <div className="acoes" style={{ marginTop: '.75rem' }}>
-            {proxima ? (
+            {proxima && !estaAberta(proxima.id, agora) ? (
+              /* A seguinte ainda está fechada: em vez de um link para um
+                 cadeado, a data — e o caminho de volta. */
+              <>
+                <p>
+                  A próxima, <strong>{proxima.nome}</strong>, abre na{' '}
+                  {rotuloAbertura(proxima.id)}.
+                </p>
+                <Link className="botao botao--secundario" to="/">
+                  Voltar para a jornada
+                </Link>
+              </>
+            ) : proxima ? (
               <Link
                 className="botao botao--primario"
                 to={`/missao/${proxima.id}`}

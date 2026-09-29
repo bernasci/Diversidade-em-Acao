@@ -255,6 +255,64 @@ begin
   return v_credito || jsonb_build_object('certo', v_certo, 'resposta', v_g.resposta, 'explicacao', v_g.explicacao);
 end $$;
 
+-- ---------------------------------------------------------------------------
+-- TEMPO DOS MINI-GAMES — o bônus de rapidez.
+--
+-- QUEM CRONOMETRA É O BANCO. O navegador manda `segundos` desde o começo, mas
+-- esse número só serve de registro: qualquer um escreve `segundos: 1` pelo
+-- DevTools. O tempo que vale ponto começa em `app_jogo_iniciar`, chamada quando
+-- a pessoa toca em "Começar", e termina em `app_jogo_concluir` — os dois com o
+-- `now()` do servidor.
+--
+-- RECOMEÇAR ZERA O RELÓGIO. A outra opção, guardar o primeiro início para
+-- sempre, puniria quem abriu o jogo, foi interrompido e voltou uma hora depois
+-- — com bônus zero. O preço é que dá para abrir o jogo, espiar e recomeçar.
+-- Nos três jogos isso ajuda pouco: a memória reembaralha, o Mito ou Fato
+-- reordena as cartas, e só o crédito da PRIMEIRA conclusão conta.
+-- ---------------------------------------------------------------------------
+create table if not exists public.inicio_jogo (
+  jogador uuid not null references public.jogadores(id) on delete cascade,
+  missao text not null,
+  jogo text not null,
+  iniciado_em timestamptz not null default now(),
+  primary key (jogador, missao, jogo)
+);
+
+create or replace function public.app_jogo_iniciar(p_hash text, p_missao text, p_jogo text)
+returns jsonb language plpgsql as $$
+declare v_j public.jogadores;
+begin
+  select * into v_j from public.app_jogador_da_sessao(p_hash);
+  if v_j.id is null then return jsonb_build_object('erro', 'sessao-invalida'); end if;
+  if not ((p_missao = 'm1' and p_jogo = 'memoria')
+       or (p_missao = 'm2' and p_jogo = 'mito')
+       or (p_missao = 'm3' and p_jogo = 'cenario')) then
+    return jsonb_build_object('erro', 'dados-invalidos', 'mensagem', 'Jogo desconhecido.');
+  end if;
+  insert into public.inicio_jogo (jogador, missao, jogo, iniciado_em)
+  values (v_j.id, p_missao, p_jogo, now())
+  on conflict (jogador, missao, jogo) do update set iniciado_em = excluded.iniciado_em;
+  return jsonb_build_object('ok', true);
+end $$;
+
+-- ---------------------------------------------------------------------------
+-- O BÔNUS: até +10 = 10 × rapidez × precisão, somado aos 10 da conclusão.
+--
+-- RAPIDEZ vai de 1 a 0 numa reta: 1 até o tempo IDEAL, 0 a partir do LIMITE.
+-- Os ideais saíram de uma jogada real de quem conhece o conteúdo (43s, 62s e
+-- 33s); os limites dão folga para quem lê com calma ainda levar parte do
+-- bônus. Abaixo do PISO o tempo não é humano — nenhuma pessoa lê oito cartas
+-- em cinco segundos — e o bônus é zero, sem recusar a conclusão.
+--
+-- PRECISÃO entra porque, sem ela, velocidade viraria o único critério: tocar
+-- "É MITO" oito vezes seguidas terminaria em 5 segundos com bônus máximo. Na
+-- memória ela é sempre 1 — o jogo só acaba com todos os pares achados.
+--
+-- Os acertos vêm do navegador e não são conferidos aqui, e isso é aceitável:
+-- as respostas do Mito ou Fato e do cenário estão no próprio app, para dar o
+-- retorno na hora. Mandar os acertos certos pelo DevTools equivale a jogar
+-- certo; o que não dá mais para forjar é o tempo.
+-- ---------------------------------------------------------------------------
 create or replace function public.app_jogo_concluir(
   p_hash text, p_missao text, p_jogo text, p_acertos integer, p_total integer, p_segundos integer
 )
@@ -262,6 +320,12 @@ returns jsonb language plpgsql as $$
 declare
   v_j public.jogadores;
   v_esperado integer;
+  v_ideal numeric; v_limite numeric; v_piso numeric;
+  v_seg numeric;
+  v_rapidez numeric := 0;
+  v_precisao numeric;
+  v_bonus integer;
+  v_credito jsonb;
 begin
   select * into v_j from public.app_jogador_da_sessao(p_hash);
   if v_j.id is null then return jsonb_build_object('erro', 'sessao-invalida'); end if;
@@ -273,8 +337,37 @@ begin
   if v_esperado is null or p_total is distinct from v_esperado then
     return jsonb_build_object('erro', 'dados-invalidos', 'mensagem', 'Resultado do jogo não confere.');
   end if;
-  return public.app_creditar(v_j.id, p_missao, 'jogo:' || p_jogo, 10,
-    jsonb_build_object('acertos', greatest(0, p_acertos), 'total', v_esperado, 'segundos', greatest(0, p_segundos)));
+
+  select t.ideal, t.limite, t.piso into v_ideal, v_limite, v_piso
+  from (values ('memoria', 40, 150, 10), ('mito', 60, 200, 16), ('cenario', 45, 240, 12))
+    as t(jogo, ideal, limite, piso)
+  where t.jogo = p_jogo;
+
+  select extract(epoch from now() - i.iniciado_em) into v_seg
+  from public.inicio_jogo i
+  where i.jogador = v_j.id and i.missao = p_missao and i.jogo = p_jogo;
+
+  -- Sem início registrado (cliente antigo, ou a chamada de início falhou) o
+  -- jogo ainda credita os 10 da conclusão — só não há tempo para premiar.
+  if v_seg is not null and v_seg >= v_piso then
+    v_rapidez := case
+      when v_seg <= v_ideal then 1
+      when v_seg >= v_limite then 0
+      else (v_limite - v_seg) / (v_limite - v_ideal)
+    end;
+  end if;
+  v_precisao := least(1, greatest(0, coalesce(p_acertos, 0)::numeric / v_esperado));
+  v_bonus := round(10 * v_rapidez * v_precisao);
+
+  v_credito := public.app_creditar(v_j.id, p_missao, 'jogo:' || p_jogo, 10 + v_bonus,
+    jsonb_build_object(
+      'acertos', greatest(0, p_acertos), 'total', v_esperado,
+      'segundos', round(coalesce(v_seg, -1)), 'segundos_cliente', greatest(0, p_segundos),
+      'bonus_tempo', v_bonus));
+
+  return v_credito || jsonb_build_object(
+    'bonus_tempo', case when (v_credito->>'ja')::boolean then 0 else v_bonus end,
+    'segundos', round(coalesce(v_seg, 0)));
 end $$;
 
 create or replace function public.app_bonus(p_hash text)

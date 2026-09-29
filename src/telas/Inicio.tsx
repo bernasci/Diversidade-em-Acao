@@ -12,8 +12,11 @@
       esconde. É também o que numera com honestidade: o número aqui carrega
       informação, não é enfeite de seção.
 
-   As missões não se travam entre si de propósito: quem só tem alguns minutos
-   consegue fechar uma, na ordem que quiser.
+   As missões não se travam UMA PELA OUTRA: quem só tem alguns minutos
+   consegue fechar a que quiser, entre as abertas. O que as trava é o
+   CALENDÁRIO da campanha — uma etapa por dia, datas em
+   `api/_lib/calendario.ts`. Missão fechada aparece na trilha com a data em
+   que abre, e não some: saber o que vem amanhã é parte do motivo para voltar.
    ========================================================================== */
 
 import { Link } from 'react-router-dom'
@@ -30,34 +33,44 @@ import {
   respondidas,
 } from '../nucleo/progresso'
 import { Barra, GradeMedalhas, Selo } from '../componentes/comuns'
+import { useAgora } from '../nucleo/agora'
+import { estaAberta, rotuloAbertura } from '../../api/_lib/calendario'
 import Certificado from '../componentes/Certificado'
 
 export default function Inicio() {
   const { jogador, progresso } = useEstado()
+  const agora = useAgora()
   if (!jogador) return null
 
   const pct = percentual(progresso)
   const completas = missoesCompletas(progresso)
   const faltam = MISSOES.length - completas
   const primeiroNome = (jogador.nome || '').trim().split(/\s+/)[0]
-  const proxima = MISSOES.find((m) => !missaoCompleta(progresso, m.id))
+  /* A "próxima" é a primeira pendente ENTRE AS ABERTAS. Uma pendente fechada
+     não pode ser a missão da vez: o botão "Continuar" levaria a um cadeado. */
+  const proxima = MISSOES.find((m) => !missaoCompleta(progresso, m.id) && estaAberta(m.id, agora))
+  const aEspera = MISSOES.find((m) => !missaoCompleta(progresso, m.id) && !estaAberta(m.id, agora))
 
   return (
     <div className="pilha-g">
       <section className="heroi" aria-labelledby="t-resumo">
         <div className="pilha-2">
           <h1 id="t-resumo">{primeiroNome ? `Olá, ${primeiroNome}` : 'Sua jornada'}</h1>
-          <p>
-            {completas === 0 &&
-              'Três missões, cerca de quinze minutos cada. Comece por onde quiser.'}
-            {completas > 0 && faltam > 0 && (
-              <>
-                <strong>{completas}</strong> de <strong>{MISSOES.length}</strong> missões concluídas.
-                Faltam {faltam} para o certificado.
-              </>
-            )}
-            {faltam === 0 && 'Jornada completa. Seu certificado está pronto.'}
-          </p>
+          {/* Sem frase para quem ainda não começou: o botão logo abaixo já diz o
+              que fazer, e a saudação sozinha basta. O parágrafo só aparece
+              quando há progresso para contar. */}
+          {completas > 0 && (
+            <p>
+              {faltam > 0 ? (
+                <>
+                  <strong>{completas}</strong> de <strong>{MISSOES.length}</strong> missões concluídas.
+                  Faltam {faltam} para o certificado.
+                </>
+              ) : (
+                'Jornada completa. Seu certificado está pronto.'
+              )}
+            </p>
+          )}
         </div>
 
         {/* O número é PONTO; a barra e a porcentagem são JORNADA. Antes os dois
@@ -79,6 +92,13 @@ export default function Inicio() {
             <Link className="botao botao--primario" to={`/missao/${proxima.id}`}>
               {completas === 0 ? 'Começar a Missão 1 →' : 'Continuar de onde parei →'}
             </Link>
+          ) : aEspera ? (
+            /* Fez tudo o que estava aberto. Não é botão: não há para onde ir
+               hoje, e um botão desabilitado pareceria defeito. */
+            <p className="heroi__espera">
+              Você concluiu o que estava aberto. A próxima etapa, <strong>{aEspera.nome}</strong>,
+              abre na {rotuloAbertura(aEspera.id)}.
+            </p>
           ) : (
             /* Âncora, não rota: o certificado está nesta mesma tela, no fim.
                Mandar para outra rota seria fingir que ele mora em outro lugar. */
@@ -100,9 +120,31 @@ export default function Inicio() {
         <ol className="trilha">
           {MISSOES.map((m, i) => {
             const completa = missaoCompleta(progresso, m.id)
-            const agora = !completa && proxima?.id === m.id
+            const daVez = !completa && proxima?.id === m.id
             const feitas = respondidas(progresso, m.id)
-            const estado = completa ? ' trilha__item--feito' : agora ? ' trilha__item--agora' : ''
+
+            /* FECHADA: o card continua na trilha, com nome e tema, mas não é
+               link — é um <div>, e não um <a> desabilitado, porque não há
+               destino. O cadeado vai no nó e a data num selo, em texto: a
+               informação nunca fica só no ícone. */
+            if (!estaAberta(m.id, agora)) {
+              return (
+                <li key={m.id} className="trilha__item trilha__item--fechado">
+                  <span className="trilha__num" aria-hidden="true">
+                    🔒
+                  </span>
+                  <div className="trilha__link">
+                    <span className="trilha__nome">{m.nome}</span>
+                    <span className="trilha__tema">{m.tema}</span>
+                    <span className="trilha__selos">
+                      <Selo estado="neutro">Abre na {rotuloAbertura(m.id)}</Selo>
+                    </span>
+                  </div>
+                </li>
+              )
+            }
+
+            const estado = completa ? ' trilha__item--feito' : daVez ? ' trilha__item--agora' : ''
 
             return (
               <li key={m.id} className={`trilha__item${estado}`}>
@@ -111,7 +153,7 @@ export default function Inicio() {
                 </span>
 
                 <Link to={`/missao/${m.id}`} className="trilha__link">
-                  {agora && <span className="trilha__agora">AGORA</span>}
+                  {daVez && <span className="trilha__agora">AGORA</span>}
                   <span className="trilha__nome">{m.nome}</span>
                   <span className="trilha__tema">{m.tema}</span>
 
@@ -119,7 +161,7 @@ export default function Inicio() {
                       outras ela viraria cinco parágrafos numa lista que a
                       pessoa está percorrendo com o polegar — e some a
                       hierarquia que diz onde ela parou. */}
-                  {agora && <span className="trilha__linha">{m.tagline}</span>}
+                  {daVez && <span className="trilha__linha">{m.tagline}</span>}
 
                   <span className="trilha__selos">
                     {completa ? (

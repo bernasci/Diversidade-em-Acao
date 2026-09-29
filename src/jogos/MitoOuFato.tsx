@@ -1,12 +1,16 @@
 /* ==========================================================================
    M4 · Mito ou Fato — oito afirmações que circulam no corredor da empresa.
 
-   O cronômetro é ESCOLHIDO antes de começar, na mesma tela e com o mesmo peso
-   visual das duas opções. Não é uma configuração escondida: limite de tempo
-   obrigatório reprova em WCAG 2.2.1, e num jogo sobre inclusão de PcD isso
-   seria irônico demais para passar. Quem quer a adrenalina liga; quem lê
-   devagar, usa leitor de tela ou tem deficiência motora joga sem relógio — e
-   ganha exatamente os mesmos 10 pontos.
+   SEM CRONÔMETRO PRÓPRIO. Este jogo já teve um opcional, de 15 segundos por
+   carta, escolhido antes de começar — com a promessa de que as duas formas
+   valiam os mesmos pontos. A promessa deixou de ser verdade quando todos os
+   mini-games passaram a pontuar a rapidez (decisão do time, ver
+   `PartidaCronometrada`), e manter a escolha seria mentir na tela.
+
+   O relógio agora é o de fora, igual para os três jogos e medido pelo
+   servidor. Ele nunca interrompe a partida — não há tempo esgotado nem carta
+   perdida —, só pesa no bônus. É o que mantém o jogo dentro do WCAG 2.2.1:
+   quem lê devagar termina, só leva menos bônus.
    ========================================================================== */
 
 import { useEffect, useMemo, useRef, useState } from 'react'
@@ -14,100 +18,35 @@ import { CARTAS_MITO } from '../conteudo/jogos'
 import { agora, embaralhar, type PropsJogo } from './contrato'
 import { Nota } from '../componentes/comuns'
 
-const SEGUNDOS_POR_CARTA = 15
-
 export default function MitoOuFato({ aoConcluir, jaFeito }: PropsJogo) {
   const cartas = useMemo(() => embaralhar(CARTAS_MITO), [])
-  const [fase, setFase] = useState<'escolha' | 'jogando' | 'fim'>('escolha')
-  const [comTempo, setComTempo] = useState(false)
+  const [fase, setFase] = useState<'jogando' | 'fim'>('jogando')
   const [i, setI] = useState(0)
   const [acertos, setAcertos] = useState(0)
   const [resposta, setResposta] = useState<{ certo: boolean; texto: string } | null>(null)
-  const [restam, setRestam] = useState(SEGUNDOS_POR_CARTA)
   const inicio = useRef(agora())
   const concluiu = useRef(false)
 
   const carta = cartas[i]
 
-  function responder(escolhaFato: boolean | null) {
+  function responder(escolhaFato: boolean) {
     if (resposta || !carta) return
-    const certo = escolhaFato !== null && escolhaFato === carta.fato
+    const certo = escolhaFato === carta.fato
     if (certo) setAcertos((a) => a + 1)
-    setResposta({
-      certo,
-      texto:
-        escolhaFato === null
-          ? `Tempo esgotado. ${carta.explicacao}`
-          : carta.explicacao,
-    })
+    setResposta({ certo, texto: carta.explicacao })
   }
 
   function proxima() {
     setResposta(null)
-    setRestam(SEGUNDOS_POR_CARTA)
     if (i + 1 >= cartas.length) setFase('fim')
     else setI((x) => x + 1)
   }
-
-  /* Cronômetro. Só existe quando a pessoa pediu por ele; para na hora em que
-     a resposta aparece, para não correr por cima da explicação. */
-  useEffect(() => {
-    if (fase !== 'jogando' || !comTempo || resposta) return
-    if (restam <= 0) {
-      responder(null)
-      return
-    }
-    const t = window.setTimeout(() => setRestam((r) => r - 1), 1000)
-    return () => window.clearTimeout(t)
-  })
 
   useEffect(() => {
     if (fase !== 'fim' || concluiu.current) return
     concluiu.current = true
     aoConcluir({ acertos, total: cartas.length, segundos: agora() - inicio.current })
   }, [fase, acertos, cartas.length, aoConcluir])
-
-  /* ------------------------------ ESCOLHA ------------------------------ */
-  if (fase === 'escolha') {
-    return (
-      <div className="jogo">
-        <p className="prosa">
-          Oito afirmações sobre deficiência no trabalho. Para cada uma, decida se é{' '}
-          <strong>mito</strong> ou <strong>fato</strong> — e depois leia o porquê.
-        </p>
-
-        <fieldset className="painel pilha" style={{ minWidth: 0 }}>
-          <legend style={{ fontWeight: 700, padding: '0 .5rem' }}>Como você prefere jogar?</legend>
-          <p className="meta">
-            As duas formas valem os mesmos pontos. Escolha a que for melhor para você.
-          </p>
-          <button
-            type="button"
-            className="botao botao--primario botao--largo"
-            onClick={() => {
-              setComTempo(false)
-              inicio.current = agora()
-              setFase('jogando')
-            }}
-          >
-            Sem cronômetro — leio no meu tempo
-          </button>
-          <button
-            type="button"
-            className="botao botao--secundario botao--largo"
-            onClick={() => {
-              setComTempo(true)
-              setRestam(SEGUNDOS_POR_CARTA)
-              inicio.current = agora()
-              setFase('jogando')
-            }}
-          >
-            Com cronômetro — {SEGUNDOS_POR_CARTA} segundos por carta
-          </button>
-        </fieldset>
-      </div>
-    )
-  }
 
   /* -------------------------------- FIM -------------------------------- */
   if (fase === 'fim') {
@@ -142,19 +81,6 @@ export default function MitoOuFato({ aoConcluir, jaFeito }: PropsJogo) {
       </div>
 
       <div className="mito">
-        {comTempo && !resposta && (
-          <div className="mito__cronometro">
-            <div
-              className="progresso"
-              role="timer"
-              aria-label={`Tempo restante: ${restam} segundos`}
-            >
-              <div className="progresso__barra" style={{ width: `${(restam / SEGUNDOS_POR_CARTA) * 100}%` }} />
-            </div>
-            <span>{restam}s</span>
-          </div>
-        )}
-
         <p className="mito__carta">{carta.texto}</p>
 
         {!resposta ? (

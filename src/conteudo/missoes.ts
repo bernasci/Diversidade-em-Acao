@@ -31,6 +31,10 @@ export interface Missao {
 }
 
 export const PTS_JOGO = 10
+/** Teto do bônus de rapidez por mini-game. Quem calcula é o banco
+    (`app_jogo_concluir`); esta constante serve ao rótulo "até +10" e ao
+    teto de pontos. */
+export const PTS_TEMPO = 10
 export const PTS_ACERTO = 2
 export const PTS_BONUS = 20
 export const PERGUNTAS_POR_MISSAO = 5
@@ -122,7 +126,7 @@ export const MISSOES: Missao[] = [
       {
         tipo: 'mito',
         nome: 'Mito ou Fato',
-        como: 'Classifique cada afirmação. Você escolhe se quer o cronômetro ligado.',
+        como: 'Classifique cada afirmação e leia o porquê.',
       },
     ],
   },
@@ -159,5 +163,5 @@ export const TOTAL_JOGOS = MISSOES.reduce((n, m) => n + m.jogos.length, 0)
 /** Quantas perguntas a jornada inteira tem. */
 export const TOTAL_PERGUNTAS = MISSOES.length * PERGUNTAS_POR_MISSAO
 
-/** Teto de pontos do jogo inteiro: 3 jogos × 10 + 15 perguntas × 2 + 20 de bônus. */
-export const PTS_MAX = TOTAL_JOGOS * PTS_JOGO + TOTAL_PERGUNTAS * PTS_ACERTO + PTS_BONUS
+/** Teto de pontos: 3 jogos × (10 + até 10 de rapidez) + 15 perguntas × 2 + 20 de bônus = 110. */
+export const PTS_MAX = TOTAL_JOGOS * (PTS_JOGO + PTS_TEMPO) + TOTAL_PERGUNTAS * PTS_ACERTO + PTS_BONUS

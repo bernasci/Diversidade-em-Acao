@@ -115,6 +115,12 @@ export const concluirJogo = (
   resultado: { acertos: number; total: number; segundos: number },
 ) => chamar<RespostaCredito>('jogar', { acao: 'jogo-concluir', missao, jogo, resultado })
 
+/** Marca no servidor o início do mini-game — é daqui que o bônus de rapidez
+    conta. O relógio é o do servidor; o `segundos` que a conclusão manda é só
+    registro. */
+export const iniciarJogo = (missao: IdMissao, jogo: TipoJogo) =>
+  chamar<{ ok: true }>('jogar', { acao: 'jogo-iniciar', missao, jogo })
+
 export const pedirBonus = () =>
   chamar<RespostaCredito>('jogar', { acao: 'bonus' })
 

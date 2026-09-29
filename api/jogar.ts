@@ -1,9 +1,20 @@
 import { banco, primeiroResultado } from './_lib/db.js'
 import { CORS, corpoJson, erro, responderResultado } from './_lib/http.js'
 import { hashToken } from './_lib/sessao.js'
+import { estaAberta, rotuloAbertura } from './_lib/calendario.js'
 
 const MISSOES = ['m1', 'm2', 'm3']
 const MOLDURAS = ['nenhuma', 'anel', 'duplo', 'solido', 'brilho', 'quadrado']
+
+/* MISSÃO FECHADA NÃO CREDITA. A tela esconde a missão antes da data, mas a
+   tela é conselho: quem chama esta função pelo DevTools pula o cadeado. O
+   bloqueio de verdade é este, com o relógio do servidor. Vale para as duas
+   ações que dão ponto — responder quiz e concluir jogo. `estado` e `perfil`
+   não passam por aqui, porque ler o próprio progresso nunca é problema. */
+const fechada = (missao: string): Response | null =>
+  estaAberta(missao)
+    ? null
+    : erro('etapa-bloqueada', `Esta etapa abre na ${rotuloAbertura(missao)}.`, 403)
 
 export default {
   async fetch(req: Request): Promise<Response> {
@@ -33,13 +44,28 @@ export default {
           if (!MISSOES.includes(missao) || !Number.isInteger(pergunta) || pergunta < 0 || pergunta >= 5 || !Number.isInteger(escolha) || escolha < 0 || escolha > 3) {
             return erro('dados-invalidos', 'Pergunta ou alternativa inválida.')
           }
+          const bloqueio = fechada(missao)
+          if (bloqueio) return bloqueio
           linhas = await banco()`select public.app_responder(${hash}, ${missao}, ${pergunta}, ${escolha}) as resultado` as Record<string, unknown>[]
+          break
+        }
+
+        /* O relógio do bônus de rapidez começa aqui, no servidor. Recomeçar o
+           jogo chama de novo e zera o relógio — ver `app_jogo_iniciar`. */
+        case 'jogo-iniciar': {
+          const missao = String(corpo.missao ?? '')
+          const jogo = String(corpo.jogo ?? '')
+          const bloqueio = fechada(missao)
+          if (bloqueio) return bloqueio
+          linhas = await banco()`select public.app_jogo_iniciar(${hash}, ${missao}, ${jogo}) as resultado` as Record<string, unknown>[]
           break
         }
 
         case 'jogo-concluir': {
           const missao = String(corpo.missao ?? '')
           const jogo = String(corpo.jogo ?? '')
+          const bloqueio = fechada(missao)
+          if (bloqueio) return bloqueio
           const r = corpo.resultado && typeof corpo.resultado === 'object'
             ? corpo.resultado as Record<string, unknown>
             : {}

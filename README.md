@@ -166,9 +166,24 @@ conteúdo em `src/conteudo/jogos.ts` — e voltam com uma linha em `missoes.ts` 
 na Edge Function. Enquanto estiverem fora, ninguém os baixa: o `lazy()` só busca o que uma missão
 pede, e o servidor recusa creditar jogo que não esteja na trilha.
 
-Pontuação: 10 por mini-game (são 3) + 2 por acerto no quiz (10 por missão) + 20 de bônus ao fechar
-as três. **Total: 80 pontos.** Medalhas: Bronze (1 missão), Prata (2), Ouro (3), Platina (3 com os
-15 acertos).
+Pontuação: 10 por mini-game (são 3) **+ até 10 de bônus de rapidez em cada um** + 2 por acerto no
+quiz (10 por missão) + 20 de bônus ao fechar as três. **Total: 110 pontos.** Medalhas: Bronze (1
+missão), Prata (2), Ouro (3), Platina (3 com os 15 acertos) — a Platina continua dependendo só do
+quiz, não do tempo.
+
+**Bônus de rapidez = 10 × rapidez × precisão.** O tempo é medido pelo SERVIDOR, do toque em
+"Começar" até a conclusão; o `segundos` que o navegador manda é só registro. A rapidez vai de 1 (até
+o tempo ideal) a 0 (a partir do limite), e abaixo de um piso de plausibilidade o bônus é zero. As
+faixas ficam em `app_jogo_concluir`, no `neon/schema.sql`:
+
+| Jogo | Ideal | Limite | Piso |
+| --- | --- | --- | --- |
+| Memória | 40s | 150s | 10s |
+| Mito ou Fato | 60s | 200s | 16s |
+| Cenário | 45s | 240s | 12s |
+
+O relógio nunca interrompe a partida — não há tempo esgotado —, só pesa no bônus. Quem precisa de mais
+tempo termina o jogo e leva os 10 da conclusão.
 
 > Trocar a trilha invalida o progresso gravado: as tarefas de mini-game mudaram de nome e as
 > perguntas mudaram de assunto. Rode `002_gabarito.sql` e depois

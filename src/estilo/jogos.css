@@ -360,17 +360,35 @@
   border-color: var(--ok);
   color: var(--ok);
 }
-.mito__cronometro {
-  width: 100%;
-  display: flex;
-  align-items: center;
-  gap: var(--e-3);
-  font-size: var(--t-sm);
-  font-variant-numeric: tabular-nums;
-  color: var(--ink-3);
+/* --------------------------------------------------------------------------
+   PARTIDA CRONOMETRADA — a moldura de tempo dos três mini-games.
+   O cronômetro por carta que o Mito ou Fato tinha foi substituído por esta,
+   igual para todos os jogos. Ver `PartidaCronometrada.tsx`.
+   -------------------------------------------------------------------------- */
+.partida__titulo {
+  font-weight: 700;
+  font-size: var(--t-md);
+  color: var(--navy);
 }
-.mito__cronometro .progresso {
-  flex: 1;
+
+/* O relógio fica acima do tabuleiro, pequeno e à esquerda: visível para quem
+   quer correr, sem disputar atenção com o jogo para quem não quer. Números
+   tabulares para ele não "dançar" a cada segundo. */
+.partida__relogio {
+  align-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--e-2);
+  padding: var(--e-1) var(--e-3);
+  border-radius: var(--r-full);
+  background: var(--superficie-2);
+  border: 1px solid var(--linha);
+  font-variant-numeric: tabular-nums;
+  color: var(--ink-2);
+}
+.partida__relogio b {
+  font-size: var(--t-md);
+  color: var(--navy);
 }
 
 /* --------------------------------------------------------------------------

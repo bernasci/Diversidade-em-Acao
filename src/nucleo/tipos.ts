@@ -64,6 +64,10 @@ export interface RespostaCredito {
   ja: boolean
   pontos: number
   total: number
+  /** Só na conclusão de mini-game: a parte dos `pontos` que veio da rapidez. */
+  bonus_tempo?: number
+  /** Só na conclusão de mini-game: o tempo medido PELO SERVIDOR. */
+  segundos?: number
 }
 
 export interface LinhaRanking {
@@ -89,6 +93,7 @@ export type CodigoErro =
   | 'muitas-tentativas'
   | 'dados-invalidos'
   | 'nao-configurado'
+  | 'etapa-bloqueada'
   | 'desconhecido'
 
 export class ErroApi extends Error {

@@ -374,6 +374,12 @@
 /* O número grande do placar dentro do herói. Não é o "hero-metric" de SaaS
    (número gigante + rótulo + três estatísticas): é um só, e ele é o assunto
    da tela. */
+/* No lugar do botão "Continuar", quando tudo o que resta está fechado. Não é
+   botão desabilitado: não há destino, e um botão cinza pareceria defeito. */
+.heroi__espera {
+  max-width: 44ch;
+}
+
 .heroi__pontos {
   display: flex;
   align-items: baseline;
@@ -570,6 +576,31 @@
 }
 .trilha__item--feito .trilha__link {
   background: var(--superficie-2);
+}
+
+/* FECHADA PELO CALENDÁRIO. Contorno tracejado, sem a "espessura" dos cards
+   clicáveis e sem reação ao toque: é o card que diz "ainda não", e a
+   espessura é justamente o que faz os outros parecerem apertáveis. Continua
+   legível — nome e tema em tinta cheia, porque saber o que vem é o convite
+   para voltar amanhã. */
+.trilha__item--fechado .trilha__num {
+  background: var(--superficie-2);
+  box-shadow: 0 3px 0 var(--linha);
+  font-size: 1.05rem;
+}
+.trilha__item--fechado .trilha__link,
+.trilha__item--fechado .trilha__link:hover {
+  background: var(--superficie-2);
+  outline-style: dashed;
+  outline-color: var(--linha-forte);
+  box-shadow: none;
+  cursor: default;
+}
+.trilha__item--fechado .trilha__link:active {
+  transform: none;
+}
+.trilha__item--fechado .trilha__nome {
+  color: var(--ink-2);
 }
 
 .trilha__agora {
