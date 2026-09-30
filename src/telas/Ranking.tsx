@@ -3,9 +3,10 @@
 
    Três decisões que valem o comentário:
 
-   1. É OPT-IN, desligado por padrão. Num jogo sobre inclusão, expor nome e
-      pontuação de 5.602 pessoas sem que elas tenham pedido seria estranho no
-      mínimo. Quem não optou não aparece, e pode sair depois no Perfil.
+   1. TODO MUNDO APARECE POR PADRÃO, e quem não quiser sai no Perfil. Era
+      opt-in até 30/09; com a opção escondida no Perfil, metade de quem jogava
+      ficava fora sem nunca ter decidido nada, e a campanha pediu a lista
+      cheia. Sair continua a um toque, e o aviso abaixo diz onde.
 
    2. SEM POLLING. A lista é buscada ao abrir e tem um botão de atualizar. O
       DOME GAMES consulta o ranking a cada 15 segundos; com 5.602 pessoas isso
@@ -59,7 +60,8 @@ export default function Ranking() {
       <div className="pilha-2">
         <h1>Ranking</h1>
         <p className="prosa">
-          Aparecem aqui apenas as pessoas que escolheram participar. A lista é atualizada a cada
+          Todos os participantes aparecem aqui com o nome curto, a área e os pontos. Quem preferir
+          pode sair do ranking no <Link to="/perfil">Perfil</Link>. A lista é atualizada a cada
           poucos minutos.
         </p>
       </div>
@@ -89,8 +91,8 @@ export default function Ranking() {
         <Vazio ico={linhas.length === 0 ? '🏁' : '🔍'}>
           {linhas.length === 0 ? (
             <>
-              <strong>O ranking ainda está vazio.</strong> Ele mostra quem optou por aparecer — dá
-              para ser a primeira pessoa da lista ativando a opção no <Link to="/perfil">Perfil</Link>.
+              <strong>O ranking ainda está vazio.</strong> Conclua uma atividade para ser a primeira
+              pessoa da lista.
             </>
           ) : (
             <>

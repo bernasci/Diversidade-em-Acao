@@ -7,9 +7,10 @@
    pública valer como registro do evento — apelido escolhido por quem joga
    não serve de registro de nada.
 
-   O que sobra para o jogador escolher é o avatar e, principalmente, SE quer
-   aparecer. Com nome real em jogo, o texto do opt-in tem de dizer exatamente
-   o que fica visível — e é o que ele faz, listando os campos um a um.
+   O que sobra para o jogador escolher é o avatar e, principalmente, se quer
+   CONTINUAR aparecendo: o ranking mostra todo mundo por padrão, e é aqui que
+   se sai. Com nome real em jogo, o texto tem de dizer exatamente o que fica
+   visível — e é o que ele faz, listando os campos um a um.
 
    TRÊS ESCOLHAS, TRÊS NATUREZAS DIFERENTES, e é isso que organiza a tela: o
    ÍCONE é uma entre dezenas de opções mais uma alternativa (as iniciais), a
@@ -259,7 +260,8 @@ export default function Perfil() {
           <Nota tipo="atencao">
             <b>Você está no ranking.</b>
             Os outros participantes veem <strong>{nomeCurto(jogador.nome)}</strong>
-            {origem ? `, ${origem}` : ''} e seus pontos. Seu e-mail e seu nome completo não aparecem.
+            {origem ? `, ${origem}` : ''} e seus pontos. Seu e-mail e seu nome completo não aparecem. Se preferir, você pode sair a
+            qualquer momento — seus pontos e seu certificado continuam valendo.
           </Nota>
         ) : (
           <p className="prosa">

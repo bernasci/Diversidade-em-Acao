@@ -82,7 +82,7 @@ try {
   const e = await fn('entrar', { email: EMAIL })
   ok(e.status === 200, 'entrada responde 200', String(e.status))
   ok(typeof e.d?.token === 'string' && e.d.token.length > 30, 'token opaco devolvido')
-  ok(e.d?.jogador?.pts === 0 && e.d?.jogador?.opt_in === false, 'perfil começa sem pontos e fora do ranking')
+  ok(e.d?.jogador?.pts === 0 && e.d?.jogador?.opt_in === true, 'perfil começa sem pontos e dentro do ranking')
   ok(e.d?.jogador?.nome === 'Ana Descartavel de Testes' && e.d?.jogador?.empresa === 'QA Ltda', 'cadastro vem da lista')
   ok(Array.isArray(e.d?.progresso) && e.d.progresso.length === 0, 'progresso começa vazio')
   const T = e.d.token
@@ -145,7 +145,12 @@ try {
   const protegido = await fn('jogar', { acao: 'perfil', pts: 9999, nome: 'Impostor', area: 'Diretoria', empresa: 'Outra' }, T)
   ok(protegido.d?.jogador?.pts === 12 && protegido.d?.jogador?.nome === 'Ana Descartavel de Testes', 'campos protegidos ignorados')
 
-  const rankingResposta = await fetch(urlApi('ranking', { limit: 100 }), {
+  /* O `t` fura o cache da borda. A rota do ranking responde com
+     `s-maxage=60, stale-while-revalidate=300` para aguentar o público — e o
+     teste, que entra no ranking e lê a lista no mesmo segundo, recebia a
+     versão de antes dele entrar e acusava falha num ranking que estava certo.
+     A borda da Vercel usa a URL inteira como chave; a função ignora `t`. */
+  const rankingResposta = await fetch(urlApi('ranking', { limit: 100, t: Date.now() }), {
     headers: cookieAcesso ? { cookie: cookieAcesso } : {},
   })
   const ranking = await rankingResposta.json()

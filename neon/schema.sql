@@ -25,12 +25,17 @@ create table if not exists public.jogadores (
   emoji text not null default '😀',
   cor text not null default '#004AA1',
   pts integer not null default 0,
-  opt_in boolean not null default false,
+  opt_in boolean not null default true,
   criado_em timestamptz not null default now(),
   ultimo_acesso timestamptz not null default now(),
   empresa text,
   moldura text not null default 'nenhuma'
 );
+
+-- O ranking passou a ser opt-OUT em 30/09: todo mundo aparece, e quem não
+-- quiser sai no Perfil. O `alter` cobre o banco que já existia com o padrão
+-- antigo, onde o `create table if not exists` acima não muda nada.
+alter table public.jogadores alter column opt_in set default true;
 
 create table if not exists public.sessoes (
   token_hash text primary key,

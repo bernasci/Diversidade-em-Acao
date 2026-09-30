@@ -140,7 +140,7 @@ export function nomeCurto(nome: string): string {
 
 /* ------------------------------- RANKING -------------------------------
    A API devolve nome já encurtado, área, empresa, avatar e pontos de quem
-   optou por aparecer — nunca e-mail, nome completo ou id.
+   não saiu do ranking — nunca e-mail, nome completo ou id.
 
    Sem polling: quem quiser ver de novo, recarrega. Com 5.602 pessoas, um
    `setInterval` de 15s como o do DOME GAMES estoura sozinho os 5 GB de
