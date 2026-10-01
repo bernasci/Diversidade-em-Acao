@@ -1,7 +1,7 @@
 import { banco, primeiroResultado } from './_lib/db.js'
 import { CORS, corpoJson, erro, responderResultado } from './_lib/http.js'
 import { hashToken } from './_lib/sessao.js'
-import { estaAberta, rotuloAbertura } from './_lib/calendario.js'
+import { encerrado, estaAberta, rotuloAbertura, rotuloEncerramento } from './_lib/calendario.js'
 
 const MISSOES = ['m1', 'm2', 'm3']
 const MOLDURAS = ['nenhuma', 'anel', 'duplo', 'solido', 'brilho', 'quadrado']
@@ -10,11 +10,18 @@ const MOLDURAS = ['nenhuma', 'anel', 'duplo', 'solido', 'brilho', 'quadrado']
    tela é conselho: quem chama esta função pelo DevTools pula o cadeado. O
    bloqueio de verdade é este, com o relógio do servidor. Vale para as duas
    ações que dão ponto — responder quiz e concluir jogo. `estado` e `perfil`
-   não passam por aqui, porque ler o próprio progresso nunca é problema. */
+   não passam por aqui, porque ler o próprio progresso nunca é problema.
+
+   O ENCERRAMENTO fecha tudo de uma vez, pelo mesmo caminho. `bonus` fica de
+   fora de propósito: ele só paga a quem já completou as três missões, então
+   não cria pontuação nova — e quem respondeu a última pergunta às 17:59:59
+   não deve perder os 20 pontos porque a chamada seguinte chegou às 18:00:01. */
 const fechada = (missao: string): Response | null =>
-  estaAberta(missao)
-    ? null
-    : erro('etapa-bloqueada', `Esta etapa abre na ${rotuloAbertura(missao)}.`, 403)
+  encerrado()
+    ? erro('etapa-bloqueada', `O jogo foi encerrado às ${rotuloEncerramento()}. Seus pontos estão garantidos.`, 403)
+    : estaAberta(missao)
+      ? null
+      : erro('etapa-bloqueada', `Esta etapa abre na ${rotuloAbertura(missao)}.`, 403)
 
 export default {
   async fetch(req: Request): Promise<Response> {

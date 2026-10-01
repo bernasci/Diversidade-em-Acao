@@ -27,6 +27,25 @@ const ABERTURA: Record<string, string | null> = {
   m3: '2026-10-01T00:00:00-03:00', // Agir — quinta-feira
 }
 
+/* O FIM DA CAMPANHA. Depois disto nenhuma missão credita ponto: o ranking
+   congela e vira o resultado. Ranking, perfil e certificado seguem abertos —
+   encerrar é parar de pontuar, não tirar o app do ar. */
+const ENCERRAMENTO = '2026-10-01T18:00:00-03:00'
+
+export function encerrado(agora: number = Date.now()): boolean {
+  return agora >= new Date(ENCERRAMENTO).getTime()
+}
+
+/** "18h de quinta, 01/10" — com o mesmo fuso explícito de `rotuloAbertura`. */
+export function rotuloEncerramento(): string {
+  const d = new Date(ENCERRAMENTO)
+  const fmt = (o: Intl.DateTimeFormatOptions) =>
+    new Intl.DateTimeFormat('pt-BR', { ...o, timeZone: 'America/Sao_Paulo' }).format(d)
+  const hora = fmt({ hour: 'numeric', hourCycle: 'h23' })
+  const dia = fmt({ weekday: 'long' }).replace('-feira', '')
+  return `${hora}h de ${dia}, ${fmt({ day: '2-digit', month: '2-digit' })}`
+}
+
 /** Instante em que a missão abre, ou null se ela nunca esteve fechada. */
 export function abreEm(missao: string): Date | null {
   const d = ABERTURA[missao]
@@ -62,11 +81,13 @@ export function rotuloAbertura(missao: string): string {
   return `${dia}, ${data}`
 }
 
-/** O próximo instante em que alguma missão abre, para a tela saber quando se
-    redesenhar sozinha. Null quando não falta abrir mais nada. */
+/** O próximo instante em que a tela muda — uma missão abrindo ou o jogo
+    encerrando —, para ela saber quando se redesenhar sozinha. Null quando
+    não falta acontecer mais nada. */
 export function proximaAbertura(agora: number = Date.now()): number | null {
-  const futuras = Object.keys(ABERTURA)
-    .map((m) => abreEm(m)?.getTime() ?? 0)
-    .filter((t) => t > agora)
+  const futuras = [
+    ...Object.keys(ABERTURA).map((m) => abreEm(m)?.getTime() ?? 0),
+    new Date(ENCERRAMENTO).getTime(),
+  ].filter((t) => t > agora)
   return futuras.length ? Math.min(...futuras) : null
 }

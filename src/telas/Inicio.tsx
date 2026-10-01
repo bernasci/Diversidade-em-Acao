@@ -34,7 +34,7 @@ import {
 } from '../nucleo/progresso'
 import { Barra, GradeMedalhas, Selo } from '../componentes/comuns'
 import { useAgora } from '../nucleo/agora'
-import { estaAberta, rotuloAbertura } from '../../api/_lib/calendario'
+import { encerrado, estaAberta, rotuloAbertura, rotuloEncerramento } from '../../api/_lib/calendario'
 import Certificado from '../componentes/Certificado'
 
 export default function Inicio() {
@@ -48,7 +48,10 @@ export default function Inicio() {
   const primeiroNome = (jogador.nome || '').trim().split(/\s+/)[0]
   /* A "próxima" é a primeira pendente ENTRE AS ABERTAS. Uma pendente fechada
      não pode ser a missão da vez: o botão "Continuar" levaria a um cadeado. */
-  const proxima = MISSOES.find((m) => !missaoCompleta(progresso, m.id) && estaAberta(m.id, agora))
+  const fim = encerrado(agora)
+  const proxima = fim
+    ? undefined
+    : MISSOES.find((m) => !missaoCompleta(progresso, m.id) && estaAberta(m.id, agora))
   const aEspera = MISSOES.find((m) => !missaoCompleta(progresso, m.id) && !estaAberta(m.id, agora))
 
   return (
@@ -92,6 +95,11 @@ export default function Inicio() {
             <Link className="botao botao--primario" to={`/missao/${proxima.id}`}>
               {completas === 0 ? 'Começar a Missão 1 →' : 'Continuar de onde parei →'}
             </Link>
+          ) : fim && faltam > 0 ? (
+            <p className="heroi__espera">
+              O jogo foi encerrado às {rotuloEncerramento()}. Obrigado por participar — seus{' '}
+              <strong>{jogador.pts} pontos</strong> estão garantidos no ranking.
+            </p>
           ) : aEspera ? (
             /* Fez tudo o que estava aberto. Não é botão: não há para onde ir
                hoje, e um botão desabilitado pareceria defeito. */
@@ -127,17 +135,28 @@ export default function Inicio() {
                link — é um <div>, e não um <a> desabilitado, porque não há
                destino. O cadeado vai no nó e a data num selo, em texto: a
                informação nunca fica só no ícone. */
-            if (!estaAberta(m.id, agora)) {
+            /* Depois do ENCERRAMENTO todas viram cartão fechado, inclusive as
+               concluídas: não há mais o que fazer em nenhuma, e um link para um
+               jogo que não pontua seria convite à frustração. */
+            if (fim || !estaAberta(m.id, agora)) {
               return (
                 <li key={m.id} className="trilha__item trilha__item--fechado">
                   <span className="trilha__num" aria-hidden="true">
-                    🔒
+                    {fim && completa ? '✓' : '🔒'}
                   </span>
                   <div className="trilha__link">
                     <span className="trilha__nome">{m.nome}</span>
                     <span className="trilha__tema">{m.tema}</span>
                     <span className="trilha__selos">
-                      <Selo estado="neutro">Abre na {rotuloAbertura(m.id)}</Selo>
+                      {fim && completa ? (
+                        <Selo estado="ok">
+                          Concluída · {acertos(progresso, m.id)}/{PERGUNTAS_POR_MISSAO} acertos
+                        </Selo>
+                      ) : fim ? (
+                        <Selo estado="neutro">Encerrada</Selo>
+                      ) : (
+                        <Selo estado="neutro">Abre na {rotuloAbertura(m.id)}</Selo>
+                      )}
                     </span>
                   </div>
                 </li>

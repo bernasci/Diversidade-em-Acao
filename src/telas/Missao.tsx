@@ -35,7 +35,7 @@ import { fezJogo, missaoCompleta, quizCompleto, tarefaDoJogo } from '../nucleo/p
 import { ErroApi, type IdMissao } from '../nucleo/tipos'
 import type { PropsJogo, ResultadoJogo } from '../jogos/contrato'
 import { useAgora } from '../nucleo/agora'
-import { estaAberta, rotuloAbertura } from '../../api/_lib/calendario'
+import { encerrado, estaAberta, rotuloAbertura, rotuloEncerramento } from '../../api/_lib/calendario'
 
 const JOGOS: Record<TipoJogo, LazyExoticComponent<ComponentType<PropsJogo>>> = {
   memoria: lazy(() => import('../jogos/Memoria')),
@@ -96,7 +96,8 @@ export default function TelaMissao() {
      é parte do que o calendário segura, não só o jogo e o quiz. O servidor
      recusa o crédito de qualquer jeito; isto é para a pessoa não descobrir
      isso depois de jogar dez minutos à toa. */
-  if (!estaAberta(missao.id, agora)) {
+  const fim = encerrado(agora)
+  if (fim || !estaAberta(missao.id, agora)) {
     const n = MISSOES.findIndex((m) => m.id === missao.id) + 1
     return (
       <div className="pilha-g">
@@ -112,10 +113,17 @@ export default function TelaMissao() {
             <p>{missao.tagline}</p>
           </div>
         </header>
-        <Nota tipo="info" ico="🔒">
-          <b>Esta etapa abre na {rotuloAbertura(missao.id)}.</b> Uma nova missão é liberada a cada
-          dia da Semana. Enquanto isso, você pode concluir as que já estão abertas.
-        </Nota>
+        {fim ? (
+          <Nota tipo="info" ico="🏁">
+            <b>O jogo foi encerrado às {rotuloEncerramento()}.</b> Os pontos não contam mais, mas o
+            ranking, seu perfil e o certificado continuam disponíveis.
+          </Nota>
+        ) : (
+          <Nota tipo="info" ico="🔒">
+            <b>Esta etapa abre na {rotuloAbertura(missao.id)}.</b> Uma nova missão é liberada a cada
+            dia da Semana. Enquanto isso, você pode concluir as que já estão abertas.
+          </Nota>
+        )}
         <div className="acoes">
           <Link className="botao botao--primario" to="/">
             Voltar para a jornada
