@@ -1362,3 +1362,62 @@
   opacity: 0.55;
   cursor: default;
 }
+
+/* -------------------------------------------------------------- VENCEDORES
+   O anúncio do resultado. Sem ouro/prata/bronze: essas cores são só das
+   medalhas (ver tokens.css), e reaproveitá-las aqui confundiria "medalha de
+   ouro" com "1º lugar". O destaque do primeiro é a borda navy, mais nada. */
+.vencedores {
+  border-color: var(--linha-forte);
+}
+.vencedores__selo {
+  font-weight: 700;
+  font-size: var(--t-sm);
+  color: var(--ciano-escuro);
+  letter-spacing: 0.02em;
+}
+.vencedores__lista {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: var(--e-2);
+}
+.vencedores__item {
+  display: grid;
+  grid-template-columns: 2.5rem 1fr auto;
+  align-items: center;
+  gap: var(--e-3);
+  padding: var(--e-3);
+  border: 1px solid var(--linha);
+  border-radius: var(--r);
+  background: var(--superficie-2);
+}
+.vencedores__item[data-primeiro] {
+  border: 2px solid var(--navy);
+  background: var(--superficie);
+}
+.vencedores__pos {
+  font-size: var(--t-lg);
+  font-weight: 700;
+  color: var(--navy);
+  font-variant-numeric: tabular-nums;
+}
+.vencedores__quem {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+.vencedores__nome {
+  font-weight: 700;
+}
+.vencedores__desempate {
+  font-size: var(--t-xs);
+  color: var(--ink-2);
+}
+.vencedores__numeros {
+  display: grid;
+  justify-items: end;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}

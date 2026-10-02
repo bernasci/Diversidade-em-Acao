@@ -27,6 +27,9 @@ import { Link } from 'react-router-dom'
 import { buscarRanking, nomeCurto } from '../nucleo/api'
 import { useEstado } from '../nucleo/estado'
 import Avatar from '../componentes/Avatar'
+import Vencedores from '../componentes/Vencedores'
+import { useAgora } from '../nucleo/agora'
+import { encerrado } from '../../api/_lib/calendario'
 import { Carregando, Nota, Vazio } from '../componentes/comuns'
 import type { LinhaRanking } from '../nucleo/tipos'
 
@@ -34,6 +37,7 @@ export default function Ranking() {
   const { jogador } = useEstado()
   const [linhas, setLinhas] = useState<LinhaRanking[] | null>(null)
   const [busca, setBusca] = useState('')
+  const fim = encerrado(useAgora())
 
   /* Uma leitura por montagem da tela, e mais nenhuma. Sem botão de atualizar
      e sem `setInterval`: com 554 pessoas convidadas, um polling de 15s como o
@@ -65,6 +69,8 @@ export default function Ranking() {
           poucos minutos.
         </p>
       </div>
+
+      {fim && <Vencedores />}
 
       {jogador && !jogador.opt_in && (
         <Nota tipo="info">

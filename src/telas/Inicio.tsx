@@ -36,6 +36,7 @@ import { Barra, GradeMedalhas, Selo } from '../componentes/comuns'
 import { useAgora } from '../nucleo/agora'
 import { encerrado, estaAberta, rotuloAbertura, rotuloEncerramento } from '../../api/_lib/calendario'
 import Certificado from '../componentes/Certificado'
+import Vencedores from '../componentes/Vencedores'
 
 export default function Inicio() {
   const { jogador, progresso } = useEstado()
@@ -56,6 +57,10 @@ export default function Inicio() {
 
   return (
     <div className="pilha-g">
+      {/* Depois do encerramento o resultado é a notícia da tela, e vem antes
+          do resumo de cada um. */}
+      {fim && <Vencedores />}
+
       <section className="heroi" aria-labelledby="t-resumo">
         <div className="pilha-2">
           <h1 id="t-resumo">{primeiroNome ? `Olá, ${primeiroNome}` : 'Sua jornada'}</h1>
